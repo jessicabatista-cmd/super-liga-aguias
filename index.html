@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Super Liga Águias</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --yellow:#ffc800; --yellow-d:#e6b200; --black:#17130d; --graphite:#2c2c35; --slate:#3d3c51; --indigo:#62608e; --violet:#8249da; --bone:#f3efe9;
+  --dino:#35e07c; --dino-d:#0d4a2a; --sen:#ffffff; --sen-d:#55525e;
+  --ok:#3fb984; --err:#e0533d;
+  --head:"Oswald","Roc Grotesk","Archivo Narrow",Impact,sans-serif; --body:"Archivo","Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--black);color:var(--bone);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+em{font-style:normal;color:var(--yellow)}
+.hide{display:none!important}
+
+/* =================== TV =================== */
+body.tv{overflow:hidden;cursor:none;font-size:16px}
+body.tv.showcursor{cursor:default}
+/* palco: mínimo 1920x1080, escalado por JS (fit) para preencher qualquer tela sem cortar */
+#tv{position:fixed;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;display:flex;flex-direction:column;padding:1.2rem 2rem 1rem;gap:.9rem;
+  background:linear-gradient(135deg,#2c2c35 0%,#17130d 55%,#0e0b07 100%);overflow:hidden}
+#tv::before{content:"";position:absolute;inset:0;background:url(assets/aguias-time-comercial.jpg) center/cover no-repeat;opacity:.13;mix-blend-mode:screen;pointer-events:none}
+#tv::after{content:"";position:absolute;left:-8%;top:-10%;width:34%;height:130%;background:linear-gradient(180deg,rgba(255,200,0,.20),rgba(255,200,0,.02));
+  transform:skewX(-15deg);pointer-events:none;animation:stripe 9s ease-in-out infinite alternate}
+@keyframes stripe{to{transform:skewX(-15deg) translateX(4%);opacity:.7}}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.top,.arena,.tug,.bottom{position:relative;z-index:2}
+
+.top{display:flex;align-items:center;justify-content:space-between;height:7.6rem;flex:none}
+.brand{display:flex;align-items:center;gap:1.4rem}
+.brand img.mk{height:6rem;filter:drop-shadow(0 0 1.2rem rgba(255,200,0,.5));animation:bolt 3.2s ease-in-out infinite}
+@keyframes bolt{0%,100%{filter:drop-shadow(0 0 .8rem rgba(255,200,0,.35))}50%{filter:drop-shadow(0 0 2rem rgba(255,200,0,.95))}}
+.brand h1{font-family:var(--head);font-weight:700;font-size:5.4rem;line-height:.95;letter-spacing:-.01em;text-transform:uppercase}
+.brand p{font-size:1.15rem;letter-spacing:.32em;text-transform:uppercase;opacity:.75;margin-top:.35rem}
+.clock{display:flex;align-items:center;gap:1.2rem;background:var(--yellow);color:var(--black);padding:.7rem 2.4rem .7rem 2.8rem;
+  clip-path:polygon(2rem 0,100% 0,100% 100%,0 100%);height:100%}
+.clock .big{font-family:var(--head);font-weight:700;font-size:5.6rem;line-height:1}
+.clock .lbl{font-family:var(--head);font-weight:700;font-size:1.8rem;line-height:1.05;text-transform:uppercase}
+.clock .hms{font-family:var(--head);font-weight:500;font-size:1.4rem;letter-spacing:.14em;margin-top:.2rem;opacity:.8}
+
+.arena{flex:1;min-height:0;display:grid;grid-template-columns:1fr 6rem 1fr;align-items:stretch;gap:0}
+.vs{display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:700;font-size:3.4rem;color:var(--yellow);text-shadow:0 0 1.4rem rgba(255,200,0,.7)}
+.vs span{transform:skewX(-15deg);animation:vs 1.6s ease-in-out infinite}
+@keyframes vs{50%{transform:skewX(-15deg) scale(1.25)}}
+
+.team{--c:var(--dino);--cd:var(--dino-d);position:relative;display:flex;flex-direction:column;min-height:0;padding:1.1rem 1.6rem 1.1rem;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#17130d) 0%,rgba(23,19,13,.92) 70%);
+  border:.14rem solid color-mix(in srgb,var(--c) 70%,transparent);
+  clip-path:polygon(0 0,calc(100% - 2.2rem) 0,100% 2.2rem,100% 100%,2.2rem 100%,0 calc(100% - 2.2rem));
+  box-shadow:inset 0 0 4rem color-mix(in srgb,var(--c) 14%,transparent)}
+.team.sen{--c:var(--sen);--cd:var(--sen-d)}
+.team.lead{animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:inset 0 0 6rem color-mix(in srgb,var(--c) 28%,transparent)}}
+.team.bump{animation:bump .9s ease-out}
+@keyframes bump{20%{transform:scale(1.025);filter:brightness(1.5)}100%{transform:none}}
+.team .tag{display:flex;align-items:center;justify-content:space-between;font-family:var(--head);font-weight:700;font-size:2.3rem;text-transform:uppercase;color:var(--c);letter-spacing:.03em}
+.crown{background:var(--yellow);color:var(--black);font-size:1.15rem;padding:.25rem 1rem;letter-spacing:.12em;clip-path:polygon(.7rem 0,100% 0,calc(100% - .7rem) 100%,0 100%);animation:wob 1.4s ease-in-out infinite}
+@keyframes wob{50%{transform:translateY(-.15rem) scale(1.06)}}
+.leader{display:flex;align-items:center;gap:1.2rem;margin:.5rem 0 .2rem}
+.photo{width:8.2rem;height:8.2rem;flex:none;background:var(--c);padding:.22rem;clip-path:polygon(1rem 0,100% 0,100% calc(100% - 1rem),calc(100% - 1rem) 100%,0 100%,0 1rem)}
+.photo>div,.photo>img{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;
+  background:#17130d;color:var(--c);font-family:var(--head);font-weight:700;font-size:3.2rem;clip-path:polygon(.8rem 0,100% 0,100% calc(100% - .8rem),calc(100% - .8rem) 100%,0 100%,0 .8rem)}
+.leader small{display:block;font-size:1rem;letter-spacing:.3em;opacity:.7;text-transform:uppercase}
+.leader b{font-family:var(--head);font-size:1.9rem;text-transform:uppercase;line-height:1.05;font-weight:700}
+.score{display:flex;align-items:center;justify-content:center;gap:1rem;line-height:1;margin:.1rem 0}
+.score .num{font-family:var(--head);font-weight:700;font-size:13rem;color:var(--c);text-shadow:0 0 2.5rem color-mix(in srgb,var(--c) 55%,transparent);font-variant-numeric:tabular-nums;line-height:.95}
+.score .medal{font-size:6.4rem;filter:drop-shadow(0 0 1rem rgba(255,200,0,.7));animation:float 2.8s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-.5rem) rotate(6deg)}}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin:.2rem 0 .7rem}
+.chip{background:rgba(255,255,255,.06);border-left:.28rem solid var(--c);padding:.45rem .8rem .5rem;min-width:0}
+.chip small{display:block;font-size:.95rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75;white-space:nowrap}
+.chip b{font-family:var(--head);font-size:2.2rem;font-weight:700;line-height:1.1}
+.chip b i{font-style:normal;font-size:1.2rem;opacity:.7;font-weight:500}
+.chip .pb{height:.35rem;background:rgba(255,255,255,.12);margin-top:.25rem}
+.chip .pb i{display:block;height:100%;background:var(--c);transition:width .8s}
+.roster{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between;gap:.28rem}
+.mem{display:grid;grid-template-columns:2.6rem 1fr 11rem 4rem 4.6rem;align-items:center;gap:.7rem;background:rgba(255,255,255,.045);padding:.15rem .8rem .15rem .4rem;flex:1;min-height:0;max-height:3.9rem}
+.cg{font-family:var(--head);font-weight:700;font-size:1.05rem;text-align:center;padding:.15rem 0;background:var(--violet);color:var(--bone);clip-path:polygon(.4rem 0,100% 0,calc(100% - .4rem) 100%,0 100%);letter-spacing:.05em}
+.nm{font-family:var(--head);font-weight:500;font-size:1.65rem;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mem .bar{height:.75rem;background:rgba(255,255,255,.14);position:relative}
+.mem .bar i{display:block;height:100%;background:var(--c);transition:width .8s}
+.mem.hit .bar i{background:var(--yellow);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.55}}
+.ct{font-family:var(--head);font-size:1.5rem;text-align:right;font-weight:500;opacity:.9}
+.md{font-size:1.3rem;text-align:right;white-space:nowrap}
+
+.tug{flex:none;height:2.6rem;display:flex;position:relative;background:#222;border:.12rem solid rgba(255,255,255,.2);overflow:visible}
+.tug .a,.tug .b{height:100%;transition:width 1.2s cubic-bezier(.3,1.4,.5,1);display:flex;align-items:center;font-family:var(--head);font-weight:700;font-size:1.5rem;padding:0 1rem;letter-spacing:.1em}
+.tug .a{background:linear-gradient(90deg,#14753d,var(--dino));color:#06240f;justify-content:flex-start}
+.tug .b{background:linear-gradient(90deg,#cfcfd6,#fff);color:#25232b;justify-content:flex-end;flex:1}
+.tug .knob{position:absolute;top:-1.1rem;height:4.8rem;width:3.6rem;transform:translateX(-50%);transition:left 1.2s cubic-bezier(.3,1.4,.5,1);z-index:3;filter:drop-shadow(0 0 1rem rgba(255,200,0,.9))}
+.tug .knob img{height:100%;width:100%;object-fit:contain}
+
+.bottom{flex:none;height:5.4rem;display:flex;align-items:stretch;position:relative}
+.bottom .lab{background:var(--violet);font-family:var(--head);font-weight:700;font-size:1.5rem;display:flex;align-items:center;padding:0 2.2rem 0 1.6rem;letter-spacing:.12em;text-transform:uppercase;
+  clip-path:polygon(0 0,100% 0,calc(100% - 1.4rem) 100%,0 100%);margin-right:-.6rem;z-index:2;flex:none;min-width:17rem}
+.bottom .panel{flex:1;background:rgba(255,255,255,.07);display:flex;align-items:center;padding:0 2rem 0 2rem;overflow:hidden;position:relative}
+.slide{position:absolute;inset:0;display:flex;align-items:center;gap:3rem;padding:0 2rem;opacity:0;transition:opacity .7s;white-space:nowrap;font-size:1.65rem}
+.slide.on{opacity:1}
+.slide .ev{font-family:var(--head);font-weight:500;text-transform:uppercase;letter-spacing:.02em}
+.slide .ev small{opacity:.6;font-size:1.1rem;font-family:var(--body);text-transform:none;margin-left:.4rem}
+.slide .mv{display:flex;align-items:center;gap:.8rem;font-family:var(--head);text-transform:uppercase}
+.slide .mv b{font-size:2.2rem;color:var(--yellow)}
+.dot{display:inline-block;width:.9rem;height:.9rem;border-radius:50%;margin-right:.5rem}
+.dot.d{background:var(--dino)}.dot.s{background:#fff}
+
+/* banner de evento */
+#evt{position:fixed;left:0;right:0;top:50%;transform:translate(0,-50%) scale(.9);z-index:60;opacity:0;pointer-events:none;text-align:center;padding:2.4rem 0;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.88) 14%,rgba(0,0,0,.88) 86%,transparent);transition:all .45s cubic-bezier(.2,1.4,.4,1)}
+#evt.on{opacity:1;transform:translate(0,-50%) scale(1)}
+#evt .k{font-family:var(--head);font-weight:700;font-size:11rem;line-height:1;text-transform:uppercase;letter-spacing:-.01em;color:var(--evc,var(--yellow));text-shadow:0 0 4rem var(--evc,var(--yellow))}
+#evt .s{font-family:var(--head);font-size:3.6rem;text-transform:uppercase;margin-top:.6rem;letter-spacing:.04em}
+#evt .m{font-size:7rem;display:block;margin-bottom:-.6rem;animation:float 1.2s ease-in-out infinite}
+.flash{position:fixed;inset:0;background:var(--evc,var(--yellow));opacity:0;z-index:55;pointer-events:none}
+.flash.on{animation:fl .9s ease-out}
+@keyframes fl{0%{opacity:.55}100%{opacity:0}}
+#soundhint{position:fixed;right:1rem;top:.6rem;z-index:70;font-size:.95rem;background:rgba(0,0,0,.6);padding:.3rem .8rem;border:1px solid var(--yellow);color:var(--yellow);cursor:pointer;letter-spacing:.1em;text-transform:uppercase}
+#offline{position:fixed;left:1rem;top:.6rem;z-index:70;font-size:.95rem;background:var(--err);padding:.3rem .8rem;text-transform:uppercase;letter-spacing:.1em}
+#final{position:fixed;inset:0;z-index:65;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#final .k{font-family:var(--head);font-weight:700;font-size:6rem;color:var(--yellow);text-transform:uppercase}
+#final .w{font-family:var(--head);font-weight:700;font-size:14rem;line-height:1;text-transform:uppercase;color:var(--evc)}
+#final .s{font-size:2.6rem;margin-top:1rem;font-family:var(--head);text-transform:uppercase;letter-spacing:.1em}
+
+/* =================== ADMIN =================== */
+body.adm{font-size:16px;background:linear-gradient(135deg,#2c2c35,#17130d 60%);min-height:100%;background-attachment:fixed}
+.wrap{max-width:1180px;margin:0 auto;padding:1rem 1rem 5rem}
+.ah{display:flex;align-items:center;gap:1rem;padding:.8rem 0 1rem;flex-wrap:wrap}
+.ah img{height:44px}
+.ah h1{font-family:var(--head);font-size:2rem;text-transform:uppercase;line-height:1}
+.ah .sp{flex:1}
+.ah a{color:var(--bone);font-size:.85rem;opacity:.7}
+.tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1rem;border-bottom:2px solid var(--slate)}
+.tabs button{background:none;border:none;color:var(--bone);font-family:var(--head);text-transform:uppercase;font-size:1.1rem;letter-spacing:.06em;padding:.7rem 1.2rem;opacity:.65;border-bottom:4px solid transparent;margin-bottom:-2px}
+.tabs button.on{opacity:1;border-color:var(--yellow);color:var(--yellow)}
+.card{background:var(--slate);border:1px solid var(--indigo);padding:1rem;margin-bottom:1rem;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.card h2{font-family:var(--head);text-transform:uppercase;font-size:1.3rem;margin-bottom:.7rem;letter-spacing:.04em}
+.card h3{font-family:var(--head);text-transform:uppercase;font-size:1rem;margin:.6rem 0 .4rem;opacity:.8;letter-spacing:.1em}
+.btn{background:var(--yellow);color:var(--black);border:none;font-family:var(--head);text-transform:uppercase;font-weight:700;letter-spacing:.06em;font-size:1rem;padding:.65rem 1.2rem;border-radius:2px}
+.btn:hover{background:var(--yellow-d)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--bone);border:1px solid var(--bone)}
+.btn.sm{padding:.3rem .7rem;font-size:.85rem}
+.btn.red{background:var(--err);color:#fff}
+input,select,textarea{background:var(--graphite);border:1px solid var(--indigo);color:var(--bone);padding:.55rem .7rem;font-family:var(--body);font-size:.95rem;border-radius:2px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--yellow);box-shadow:0 0 0 2px rgba(255,200,0,.25)}
+label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;opacity:.75;margin:.5rem 0 .2rem}
+.row{display:grid;gap:.8rem}
+.r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:repeat(3,1fr)}.r4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.r2,.r3,.r4{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.r2,.r3,.r4{grid-template-columns:1fr}}
+.teamcol h3{display:flex;align-items:center;gap:.5rem;font-size:1.15rem;opacity:1}
+.sellers{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem}
+.sb{background:var(--graphite);border:2px solid var(--indigo);color:var(--bone);padding:.7rem .6rem;text-align:left;font-family:var(--head);font-size:1.1rem;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:.4rem}
+.sb small{font-family:var(--body);opacity:.65;font-size:.72rem}
+.sb.on.d{border-color:var(--dino);background:rgba(53,224,124,.18)}
+.sb.on.s{border-color:#fff;background:rgba(255,255,255,.2)}
+.tipos{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.tp{background:var(--graphite);border:2px solid var(--indigo);color:var(--bone);padding:1rem .5rem;font-family:var(--head);font-size:1.3rem;text-transform:uppercase}
+.tp small{display:block;font-family:var(--body);font-size:.75rem;opacity:.7;text-transform:none}
+.tp.on{border-color:var(--yellow);background:rgba(255,200,0,.18);color:var(--yellow)}
+.prev{background:rgba(0,0,0,.3);border-left:4px solid var(--yellow);padding:.7rem 1rem;margin:.8rem 0;font-size:.95rem;min-height:2.6rem}
+.sc{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.scb{padding:.7rem 1rem;border-left:5px solid;background:rgba(0,0,0,.25)}
+.scb.d{border-color:var(--dino)}.scb.s{border-color:#fff}
+.scb b{font-family:var(--head);font-size:2.6rem;display:block;line-height:1}
+.scb small{opacity:.7}
+.lst{display:flex;flex-direction:column;gap:.3rem}
+.li{display:flex;align-items:center;gap:.6rem;background:rgba(0,0,0,.25);padding:.45rem .7rem;font-size:.92rem;flex-wrap:wrap}
+.li.off{opacity:.45;text-decoration:line-through}
+.li .t{opacity:.6;font-size:.78rem;min-width:105px}
+.li .g{flex:1;min-width:150px}
+.badge{background:var(--violet);font-family:var(--head);font-size:.75rem;padding:.1rem .5rem;text-transform:uppercase;letter-spacing:.08em}
+.sug{background:rgba(255,200,0,.12);border:1px dashed var(--yellow)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#06240f;font-weight:700;padding:.8rem 1.4rem;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.5);font-family:var(--head);text-transform:uppercase;letter-spacing:.05em}
+.toast.err{background:var(--err);color:#fff}
+.login{max-width:380px;margin:12vh auto;text-align:center}
+.login img{height:90px;margin-bottom:1rem}
+.ec{display:grid;grid-template-columns:70px 1fr;gap:.8rem;align-items:start}
+.ec .ph{width:70px;height:70px;background:var(--graphite);display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:1.6rem;overflow:hidden;border:1px solid var(--indigo)}
+.ec .ph img{width:100%;height:100%;object-fit:cover}
+.help{font-size:.82rem;opacity:.75;line-height:1.5}
+.help code,pre{background:rgba(0,0,0,.4);padding:.1rem .35rem;font-size:.8rem}
+details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-transform:uppercase;letter-spacing:.06em}
+.sync{font-size:.8rem;opacity:.8}
+</style>
+</head>
+<body>
+
+<!-- ======= TV ======= -->
+<div id="tv" class="hide">
+  <canvas id="fx"></canvas>
+  <div id="soundhint">🔊 clique para ativar o som</div>
+  <div id="offline" class="hide">sem conexão — tentando de novo…</div>
+  <header class="top">
+    <div class="brand">
+      <img class="mk" src="assets/pronix-mark.svg" alt="">
+      <div><h1>Super Liga <em>Águias</em></h1><p id="periodo">Pronix · Time Comercial</p></div>
+    </div>
+    <div class="clock">
+      <div class="big" id="dias">–</div>
+      <div><div class="lbl" id="dlbl">dias para<br>o fim</div><div class="hms" id="hms"></div></div>
+    </div>
+  </header>
+  <section class="arena">
+    <article class="team din" id="t-dinossauro"></article>
+    <div class="vs"><span>VS</span></div>
+    <article class="team sen" id="t-senhora"></article>
+  </section>
+  <div class="tug" id="tug">
+    <div class="a" id="tugA"><span id="tugAt"></span></div><div class="b" id="tugB"><span id="tugBt"></span></div>
+    <div class="knob" id="knob"><img src="assets/pronix-mark.svg" alt=""></div>
+  </div>
+  <footer class="bottom">
+    <div class="lab" id="blab">Últimas jogadas</div>
+    <div class="panel"><div class="slide on" id="sl0"></div><div class="slide" id="sl1"></div></div>
+  </footer>
+  <div class="flash" id="flash"></div>
+  <div id="evt"><span class="m" id="evm"></span><div class="k" id="evk"></div><div class="s" id="evs"></div></div>
+  <div id="final" class="hide"></div>
+</div>
+
+<!-- ======= ADMIN ======= -->
+<div id="adm" class="hide"><div class="wrap" id="admroot"></div></div>
+
+<script>
+/*__GS_PLACEHOLDER__*/
+const GS_CODE = `// Super Liga Águias — recebe o placar do sistema e escreve nas abas Placar, Vendas e Medalhas.
+// Como usar: na planilha > Extensões > Apps Script > cole este código > Implantar > Nova implantação
+// > Tipo: App da Web > Executar como: Eu > Quem tem acesso: Qualquer pessoa > Implantar. Copie a URL /exec
+// e cole em ADM > Config > "URL da planilha".
+
+function doPost(e) {
+  var d = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  escreve_(ss, 'Placar', d.placar);
+  escreve_(ss, 'Vendas', d.vendas);
+  escreve_(ss, 'Medalhas', d.medalhas);
+  return ContentService.createTextOutput('ok');
+}
+
+function doGet() {
+  return ContentService.createTextOutput('Liga Aguias: webhook ativo');
+}
+
+function escreve_(ss, nome, linhas) {
+  var sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
+  sh.clear();
+  if (!linhas || !linhas.length) return;
+  var w = linhas[0].length;
+  sh.getRange(1, 1, linhas.length, w).setValues(linhas);
+  sh.getRange(1, 1, 1, w).setFontWeight('bold').setBackground('#17130d').setFontColor('#ffc800');
+  sh.setFrozenRows(1);
+  sh.autoResizeColumns(1, w);
+}
+`;
+
+/* ================= CONFIG ================= */
+const SB = 'https://kngsracetmwrpqueqsoj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuZ3NyYWNldG13cnBxdWVxc29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDM4MTgsImV4cCI6MjEwMzc3OTgxOH0.orP3sqwKrQZqotGC02ap8h1lH_xxtMIyt2yyqyG13Sk';
+const HDR = {apikey: KEY, Authorization: 'Bearer ' + KEY};
+const TEAMS = {
+  dinossauro: {nome: 'Time Dinossaura', emoji: '🦖', cls: 'din', cor: '#35e07c'},
+  senhora:    {nome: 'Time Senhora',    emoji: '👵🏻', cls: 'sen', cor: '#ffffff'}
+};
+const TIPOS = {mentoria: {nome: 'Mentoria', reg: '1 venda = 1 🎖️'}, imersao: {nome: 'Imersão', reg: '5 vendas = 1 🎖️'}, hub: {nome: 'Hub', reg: '4 vendas = 1 🎖️'}};
+const CARGO = {L: 'Líder', H: 'Harpia', V: 'Vekta', SV: 'Sem Vekta'};
+const META_PADRAO = {L: 6, H: 5, V: 4, SV: 1};
+const POLL_MS = 4000;
+
+/* ================= UTIL ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+async function api(path) {
+  const r = await fetch(SB + '/rest/v1/' + path, {headers: HDR});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function rpc(fn, args) {
+  const r = await fetch(SB + '/rest/v1/rpc/' + fn, {method: 'POST', headers: {...HDR, 'Content-Type': 'application/json'}, body: JSON.stringify(args)});
+  const t = await r.text();
+  if (!r.ok) { let m = t; try { m = JSON.parse(t).message; } catch (e) {} throw new Error(m); }
+  try { return t ? JSON.parse(t) : null; } catch (e) { return t; }
+}
+const fmtBR = (iso, opt) => new Date(iso).toLocaleString('pt-BR', {timeZone: 'America/Sao_Paulo', ...(opt || {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})});
+function toLocalInput(iso) { return new Date(iso).toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo', hour12: false}).slice(0, 16).replace(' ', 'T'); }
+function fromLocalInput(v) { return new Date(v + ':00-03:00').toISOString(); }
+function ago(iso) {
+  const s = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return 'agora mesmo';
+  if (s < 3600) return 'há ' + Math.floor(s / 60) + ' min';
+  if (s < 86400) return 'há ' + Math.floor(s / 3600) + ' h';
+  return 'há ' + Math.floor(s / 86400) + ' d';
+}
+const firstName = v => v.apelido ? v.nome.split(' ')[0] + ' “' + v.apelido + '”' : v.nome;
+
+/* ================= DADOS ================= */
+const S = {cfg: null, vend: [], vendas: [], med: [], fotos: {}, ok: false};
+try { const c = JSON.parse(localStorage.getItem('liga_cache') || 'null'); if (c) Object.assign(S, c, {ok: false}); } catch (e) {}
+
+async function loadAll(full) {
+  const light = 'id,nome,apelido,time,cargo,meta,ativo,ordem';
+  const [cfg, vend, vendas, med, fotos] = await Promise.all([
+    api('liga_config_publica?select=*'),
+    api('liga_vendedores?select=' + light + '&order=ordem'),
+    api('liga_vendas?select=*&order=criado_em.desc&limit=5000'),
+    api('liga_medalhas?select=*&order=criado_em.desc&limit=2000'),
+    (full || !Object.keys(S.fotos).length) ? api('liga_vendedores?select=id,foto&foto=not.is.null') : Promise.resolve(null)
+  ]);
+  S.cfg = cfg[0]; S.vend = vend; S.vendas = vendas; S.med = med;
+  if (fotos) { S.fotos = {}; fotos.forEach(f => S.fotos[f.id] = f.foto); }
+  S.ok = true;
+  try { localStorage.setItem('liga_cache', JSON.stringify({cfg: S.cfg, vend: S.vend, vendas: S.vendas.slice(0, 600), med: S.med})); } catch (e) {}
+}
+
+/* ================= CÁLCULO ================= */
+function weekIdx(d) {
+  const t = +new Date(d);
+  const w = S.cfg.semanas;
+  for (let i = 0; i < w.length; i++) if (t >= +new Date(w[i].inicio) && t <= +new Date(w[i].fim)) return i;
+  return -1;
+}
+function currentWeek() {
+  const w = S.cfg.semanas, now = Date.now();
+  for (let i = 0; i < w.length; i++) if (now >= +new Date(w[i].inicio) && now <= +new Date(w[i].fim)) return i;
+  return now < +new Date(w[0].inicio) ? 0 : w.length - 1;
+}
+function calc() {
+  const ini = +new Date(S.cfg.inicio), fim = +new Date(S.cfg.fim);
+  const byId = {}; S.vend.forEach(v => byId[v.id] = v);
+  const T = {};
+  Object.keys(TEAMS).forEach(k => T[k] = {k, mentoria: 0, imersao: 0, hub: 0, extra: 0, medM: 0, medI: 0, medH: 0, total: 0});
+  const SS = {}; // por vendedor
+  S.vend.forEach(v => SS[v.id] = {v, mentoria: 0, imersao: 0, hub: 0, total: 0, semanas: S.cfg.semanas.map(() => 0), extra: 0, extraSem: {}, pts: 0});
+  for (const s of S.vendas) {
+    if (s.cancelada) continue;
+    const t = +new Date(s.criado_em); if (t < ini || t > fim) continue;
+    const v = byId[s.vendedor_id]; if (!v) continue;
+    T[v.time][s.tipo] += s.qtd;
+    const ss = SS[v.id]; ss[s.tipo] += s.qtd; ss.total += s.qtd;
+    const wi = weekIdx(t); if (wi >= 0) ss.semanas[wi] += s.qtd;
+  }
+  for (const m of S.med) {
+    if (m.removida) continue;
+    T[m.time].extra++;
+    if (m.vendedor_id && SS[m.vendedor_id]) {
+      SS[m.vendedor_id].extra++;
+      if (m.motivo === 'meta' && m.semana) SS[m.vendedor_id].extraSem[m.semana] = true;
+    }
+  }
+  Object.values(T).forEach(t => { t.medM = t.mentoria; t.medI = Math.floor(t.imersao / 5); t.medH = Math.floor(t.hub / 4); t.total = t.medM + t.medI + t.medH + t.extra; });
+  Object.values(SS).forEach(s => s.pts = s.mentoria + s.extra);
+  // sugestões de meta batida
+  const sug = [];
+  const now = Date.now();
+  S.vend.filter(v => v.ativo).forEach(v => {
+    S.cfg.semanas.forEach((w, i) => {
+      if (now < +new Date(w.inicio)) return;
+      if (SS[v.id].semanas[i] >= v.meta && !SS[v.id].extraSem[i + 1]) sug.push({v, semana: i + 1, vendas: SS[v.id].semanas[i]});
+    });
+  });
+  return {T, SS, sug, byId};
+}
+
+/* ================= SOM + FX ================= */
+let AC = null, soundOn = false;
+function enableSound() {
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); soundOn = true; const h = $('#soundhint'); if (h) h.classList.add('hide'); } catch (e) {}
+}
+function tone(f, t0, d, type, vol) {
+  if (!soundOn || !AC) return;
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'square'; o.frequency.value = f;
+  g.gain.setValueAtTime(vol || .12, AC.currentTime + t0);
+  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + t0 + d);
+  o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + d + .02);
+}
+function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
+function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
+
+const STAGE = {w: 1920, h: 1080};
+function fitStage() {
+  const vw = innerWidth, vh = innerHeight;
+  const s = Math.min(vw / 1920, vh / 1080);           // escala base 16:9
+  STAGE.w = Math.max(1920, vw / s); STAGE.h = Math.max(1080, vh / s);   // estica o lado que sobra
+  const tv = $('#tv');
+  tv.style.width = STAGE.w + 'px'; tv.style.height = STAGE.h + 'px';
+  tv.style.transform = 'scale(' + s + ')';
+}
+const fx = {cv: null, cx: null, parts: [], embers: []};
+function fxInit() {
+  fx.cv = $('#fx'); fx.cx = fx.cv.getContext('2d');
+  const rs = () => { fitStage(); fx.cv.width = STAGE.w; fx.cv.height = STAGE.h; };
+  rs(); addEventListener('resize', rs);
+  for (let i = 0; i < 60; i++) fx.embers.push(ember(true));
+  (function loop() {
+    const c = fx.cx, W = fx.cv.width, Hh = fx.cv.height;
+    c.clearRect(0, 0, W, Hh);
+    fx.embers.forEach((e, i) => {
+      e.y -= e.v; e.x += Math.sin((e.y + e.p) / 60) * .5; e.a -= .0016;
+      if (e.y < -10 || e.a <= 0) fx.embers[i] = ember(false);
+      c.globalAlpha = Math.max(0, e.a); c.fillStyle = e.c; c.beginPath(); c.arc(e.x, e.y, e.r, 0, 6.3); c.fill();
+    });
+    fx.parts = fx.parts.filter(p => p.l > 0);
+    fx.parts.forEach(p => {
+      p.vy += .22; p.x += p.vx; p.y += p.vy; p.l--; p.rot += p.vr;
+      c.globalAlpha = Math.min(1, p.l / 40); c.fillStyle = p.c;
+      c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); c.restore();
+    });
+    c.globalAlpha = 1;
+    requestAnimationFrame(loop);
+  })();
+}
+function ember(init) {
+  const W = fx.cv.width, Hh = fx.cv.height;
+  return {x: Math.random() * W, y: init ? Math.random() * Hh : Hh + 10, v: .4 + Math.random() * 1.2, r: 1 + Math.random() * 2.6, a: .3 + Math.random() * .6, p: Math.random() * 100, c: Math.random() < .7 ? '#ffc800' : '#ff8a1f'};
+}
+function confetti(colors, n, fromY) {
+  const W = fx.cv.width, Hh = fx.cv.height;
+  for (let i = 0; i < n; i++) {
+    const left = i % 2 === 0;
+    fx.parts.push({x: left ? 0 : W, y: fromY ?? Hh * .8, vx: (left ? 1 : -1) * (6 + Math.random() * 16), vy: -(12 + Math.random() * 20), w: 8 + Math.random() * 12, h: 6 + Math.random() * 10,
+      c: colors[(Math.random() * colors.length) | 0], l: 120 + Math.random() * 90, rot: Math.random() * 6, vr: (Math.random() - .5) * .4});
+  }
+}
+function rain(colors, n) {
+  const W = fx.cv.width;
+  for (let i = 0; i < n; i++) fx.parts.push({x: Math.random() * W, y: -20 - Math.random() * 400, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 5, w: 8 + Math.random() * 10, h: 6 + Math.random() * 10, c: colors[(Math.random() * colors.length) | 0], l: 400, rot: 0, vr: (Math.random() - .5) * .3});
+}
+
+/* ================= TV ================= */
+const TV = {prev: null, seenV: new Set(), seenM: new Set(), queue: [], busy: false, slide: 0, first: true, finalShown: false};
+
+function initTV() {
+  document.body.classList.add('tv');
+  $('#tv').classList.remove('hide');
+  fxInit();
+  const h = $('#soundhint');
+  const once = () => enableSound();
+  addEventListener('click', once); addEventListener('keydown', once);
+  document.addEventListener('mousemove', () => { document.body.classList.add('showcursor'); clearTimeout(TV.ct); TV.ct = setTimeout(() => document.body.classList.remove('showcursor'), 2500); });
+  if (S.cfg) renderTV(true);
+  tick();
+  setInterval(tick, 1000);
+  setInterval(async () => { try { await loadAll(false); $('#offline').classList.add('hide'); renderTV(false); } catch (e) { $('#offline').classList.remove('hide'); } }, POLL_MS);
+  setInterval(async () => { try { await loadAll(true); renderTV(false); } catch (e) {} }, 60000);
+  setInterval(rotateBottom, 9000);
+  loadAll(true).then(() => renderTV(true)).catch(() => $('#offline').classList.remove('hide'));
+}
+
+function countTo(el, to) {
+  const from = +el.dataset.v || 0;
+  el.dataset.v = to;
+  if (from === to) { el.textContent = to; return; }
+  const t0 = performance.now(), dur = 1400;
+  (function step(t) {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * e);
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+function renderTV(initial) {
+  if (!S.cfg) return;
+  const {T, SS} = calc();
+  const wk = currentWeek();
+  // eventos
+  const ev = [];
+  if (TV.prev === null) { S.vendas.forEach(s => TV.seenV.add(s.id)); S.med.forEach(m => TV.seenM.add(m.id)); }
+  else {
+    const byId = {}; S.vend.forEach(v => byId[v.id] = v);
+    S.vendas.slice().reverse().forEach(s => {
+      if (TV.seenV.has(s.id)) return; TV.seenV.add(s.id);
+      if (s.cancelada || !byId[s.vendedor_id]) return;
+      const v = byId[s.vendedor_id];
+      ev.push({kind: 'sale', time: v.time, who: firstName(v), txt: (s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome});
+    });
+    S.med.slice().reverse().forEach(m => {
+      if (TV.seenM.has(m.id)) return; TV.seenM.add(m.id);
+      if (m.removida) return;
+      const v = m.vendedor_id ? byId[m.vendedor_id] : null;
+      ev.push({kind: 'medalhaDireta', time: m.time, who: v ? firstName(v) : TEAMS[m.time].nome, txt: m.motivo === 'meta' ? 'bateu a meta da semana' : (m.obs || 'medalha especial')});
+    });
+    // medalhas ganhas por conversão
+    Object.keys(T).forEach(k => {
+      const p = TV.prev[k], t = T[k];
+      const dd = (t.medM - p.medM) + (t.medI - p.medI) + (t.medH - p.medH);
+      if (dd > 0) {
+        const why = [];
+        if (t.medM > p.medM) why.push('mentoria'); if (t.medI > p.medI) why.push('5 imersões'); if (t.medH > p.medH) why.push('4 hubs');
+        ev.push({kind: 'medalha', time: k, who: TEAMS[k].nome, txt: why.join(' + ')});
+      }
+    });
+  }
+  TV.prev = JSON.parse(JSON.stringify(T));
+
+  // painéis
+  Object.keys(TEAMS).forEach(k => {
+    const t = T[k], other = T[k === 'dinossauro' ? 'senhora' : 'dinossauro'];
+    const el = $('#t-' + k);
+    const lider = S.vend.find(v => v.time === k && v.cargo === 'L' && v.ativo);
+    const membros = S.vend.filter(v => v.time === k && v.ativo && v !== lider);
+    const lead = t.total > other.total;
+    el.classList.toggle('lead', lead);
+    const foto = lider && S.fotos[lider.id];
+    const ini = lider ? lider.nome.split(' ').map(x => x[0]).slice(0, 2).join('') : '?';
+    const memHtml = [lider, ...membros].filter(Boolean).map(v => {
+      const s = SS[v.id], sem = s.semanas[wk] || 0, pct = Math.min(100, Math.round(sem / v.meta * 100));
+      return `<div class="mem ${sem >= v.meta ? 'hit' : ''}"><span class="cg">${v.cargo}</span><span class="nm">${esc(v.apelido ? v.nome.split(' ')[0] : v.nome)}</span>
+        <div class="bar"><i style="width:${pct}%"></i></div><span class="ct">${sem}/${v.meta}</span><span class="md">${s.pts ? '🎖️×' + s.pts : ''}</span></div>`;
+    }).join('');
+    const prog = (n, d) => Math.round((n % d) / d * 100);
+    const keep = el.querySelector('.num');
+    const old = keep ? keep.dataset.v : null;
+    el.innerHTML = `
+      <div class="tag"><span>${TEAMS[k].nome} ${TEAMS[k].emoji}</span>${t.total === other.total ? (t.total ? '<span class="crown">EMPATE</span>' : '') : lead ? '<span class="crown">👑 LIDERANDO</span>' : ''}</div>
+      <div class="leader"><div class="photo">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
+        <div><small>Líder do time</small><b>${lider ? esc(lider.nome.split(' ')[0]) + (lider.apelido ? ' “' + esc(lider.apelido) + '” ' + esc(lider.nome.split(' ').slice(1).join(' ')) : ' ' + esc(lider.nome.split(' ').slice(1).join(' '))) : ''}</b></div></div>
+      <div class="score"><span class="num" data-v="${old ?? 0}">${old ?? 0}</span><span class="medal">🎖️</span></div>
+      <div class="chips">
+        <div class="chip"><small>Mentorias</small><b>${t.mentoria} <i>= ${t.medM}🎖️</i></b></div>
+        <div class="chip"><small>Imersões</small><b>${t.imersao} <i>→ ${t.medI}🎖️</i></b><div class="pb"><i style="width:${prog(t.imersao, 5)}%"></i></div></div>
+        <div class="chip"><small>Hubs</small><b>${t.hub} <i>→ ${t.medH}🎖️</i></b><div class="pb"><i style="width:${prog(t.hub, 4)}%"></i></div></div>
+        <div class="chip"><small>Metas / extras</small><b>${t.extra} <i>🎖️</i></b></div>
+      </div>
+      <div class="roster">${memHtml}</div>`;
+    countTo(el.querySelector('.num'), t.total);
+  });
+
+  // cabo de guerra
+  const tot = T.dinossauro.total + T.senhora.total;
+  const pct = tot ? Math.max(8, Math.min(92, T.dinossauro.total / tot * 100)) : 50;
+  $('#tugA').style.width = pct + '%';
+  $('#knob').style.left = pct + '%';
+  $('#tugAt').textContent = TEAMS.dinossauro.emoji + ' ' + T.dinossauro.total;
+  $('#tugBt').textContent = T.senhora.total + ' ' + TEAMS.senhora.emoji;
+
+  // período
+  $('#periodo').textContent = 'Pronix · Time Comercial · ' + fmtBR(S.cfg.inicio, {day: '2-digit', month: '2-digit'}) + ' a ' + fmtBR(S.cfg.fim, {day: '2-digit', month: '2-digit'}) + ' · ' + (S.cfg.semanas[wk] ? S.cfg.semanas[wk].nome : '');
+
+  renderBottom(SS);
+  tick();
+  if (!initial) ev.forEach(e => TV.queue.push(e));
+  runQueue();
+  checkFinal(T);
+}
+
+function tick() {
+  if (!S.cfg) return;
+  const now = Date.now(), ini = +new Date(S.cfg.inicio), fim = +new Date(S.cfg.fim);
+  let ms, lbl;
+  if (now < ini) { ms = ini - now; lbl = 'dias para<br>começar'; }
+  else if (now > fim) { ms = 0; lbl = 'liga<br>encerrada'; }
+  else { ms = fim - now; lbl = 'dias para<br>o fim'; }
+  const d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000);
+  const p = x => String(x).padStart(2, '0');
+  $('#dias').textContent = now > fim ? '🏁' : (d === 0 && now >= ini ? '⚡' : d);
+  $('#dlbl').innerHTML = (d === 0 && now >= ini && now <= fim) ? 'último<br>dia!' : lbl;
+  $('#hms').textContent = now > fim ? '' : p(h) + 'h ' + p(m) + 'm ' + p(s) + 's';
+}
+
+function renderBottom(SS) {
+  const byId = {}; S.vend.forEach(v => byId[v.id] = v);
+  const evs = [];
+  S.vendas.filter(s => !s.cancelada && byId[s.vendedor_id]).slice(0, 10).forEach(s => evs.push({t: s.criado_em, h: `<span class="ev"><span class="dot ${byId[s.vendedor_id].time === 'dinossauro' ? 'd' : 's'}"></span>💰 ${esc(byId[s.vendedor_id].nome.split(' ')[0])} fechou ${(s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome}<small>${ago(s.criado_em)}</small></span>`}));
+  S.med.filter(m => !m.removida).slice(0, 6).forEach(m => { const v = m.vendedor_id ? byId[m.vendedor_id] : null; evs.push({t: m.criado_em, h: `<span class="ev"><span class="dot ${m.time === 'dinossauro' ? 'd' : 's'}"></span>🎖️ ${esc(v ? v.nome.split(' ')[0] : TEAMS[m.time].nome)} — ${m.motivo === 'meta' ? 'meta da semana batida' : esc(m.obs || 'medalha especial')}<small>${ago(m.criado_em)}</small></span>`}); });
+  evs.sort((a, b) => new Date(b.t) - new Date(a.t));
+  const top = Object.values(SS).filter(s => s.v.ativo).sort((a, b) => b.pts - a.pts || b.total - a.total).slice(0, 3);
+  TV.sl = [
+    {lab: 'Últimas jogadas', html: evs.slice(0, 4).map(e => e.h).join('') || '<span class="ev">Nenhuma venda ainda — bora abrir o placar! 🚀</span>'},
+    {lab: 'Corrida do MVP', html: top.map((s, i) => `<span class="mv">${['🥇', '🥈', '🥉'][i]} <span class="dot ${s.v.time === 'dinossauro' ? 'd' : 's'}"></span>${esc(s.v.nome.split(' ')[0])} <b>${s.pts}</b>🎖️ <small style="opacity:.6;font-size:1.1rem">· ${s.total} vendas</small></span>`).join('')}
+  ];
+  const cur = TV.slide % 2;
+  $('#sl' + cur).innerHTML = TV.sl[cur].html;
+  $('#blab').textContent = TV.sl[cur].lab;
+}
+function rotateBottom() {
+  if (!TV.sl) return;
+  const nxt = (TV.slide + 1) % 2;
+  $('#sl' + nxt).innerHTML = TV.sl[nxt].html;
+  $('#sl' + (TV.slide % 2)).classList.remove('on');
+  $('#sl' + nxt).classList.add('on');
+  $('#blab').textContent = TV.sl[nxt].lab;
+  TV.slide = nxt;
+}
+
+function runQueue() {
+  if (TV.busy || !TV.queue.length) return;
+  TV.busy = true;
+  const e = TV.queue.shift();
+  const col = TEAMS[e.time].cor;
+  const root = $('#evt');
+  const big = e.kind !== 'sale';
+  root.style.setProperty('--evc', col);
+  $('#flash').style.setProperty('--evc', col);
+  $('#evm').textContent = big ? '🎖️' : '💰';
+  $('#evk').textContent = big ? 'Medalha!' : 'Venda!';
+  $('#evs').innerHTML = `<span style="color:${col}">${esc(e.who)}</span> · ${esc(e.txt)}`;
+  root.classList.add('on');
+  const fl = $('#flash'); fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on');
+  const el = $('#t-' + e.time); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  if (big) { sfxMedal(); confetti([col, '#ffc800', '#ffffff', '#ff8a1f'], 170); setTimeout(() => confetti([col, '#ffc800'], 90), 700); }
+  else { sfxSale(); confetti([col, '#ffc800'], 45); }
+  setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, big ? 5200 : 3200);
+}
+
+function checkFinal(T) {
+  const over = Date.now() > +new Date(S.cfg.fim);
+  const box = $('#final');
+  if (!over) { box.classList.add('hide'); TV.finalShown = false; return; }
+  const d = T.dinossauro.total, s = T.senhora.total;
+  const win = d === s ? null : (d > s ? 'dinossauro' : 'senhora');
+  box.classList.remove('hide');
+  box.style.setProperty('--evc', win ? TEAMS[win].cor : '#ffc800');
+  box.innerHTML = `<div class="k">🏆 Super Liga Águias — campeão</div><div class="w">${win ? TEAMS[win].nome + ' ' + TEAMS[win].emoji : 'Empate!'}</div><div class="s">${d} 🎖️ × ${s} 🎖️</div>`;
+  if (!TV.finalShown) { TV.finalShown = true; setInterval(() => rain(['#ffc800', win ? TEAMS[win].cor : '#fff', '#fff'], 18), 700); }
+}
+
+/* ================= ADMIN ================= */
+const A = {pin: localStorage.getItem('liga_token') || '', me: null, tab: 'venda', sel: null, tipo: null, qtd: 1, data: '', filtro: 'todos', adminCfg: null, saved: ''};
+
+function toast(msg, err) {
+  const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg; document.body.appendChild(t);
+  setTimeout(() => t.remove(), err ? 4500 : 2200);
+}
+
+async function initAdm() {
+  $('#adm').classList.remove('hide');
+  if (A.pin) { try { const me = await rpc('liga_me', {p_pin: A.pin}); if (me) { A.me = me; await enterAdm(); return; } } catch (e) {} A.pin = ''; localStorage.removeItem('liga_token'); }
+  loginView();
+}
+function loginView(msg) {
+  $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Painel ADM · Super Liga Águias</h2>
+    <label style="text-align:left">Usuário</label><input id="usr" autocomplete="username" autocapitalize="none" placeholder="jessica, pedro ou guilherme" autofocus>
+    <label style="text-align:left">Senha</label><input id="pin" type="password" autocomplete="current-password">
+    <p style="color:var(--err);min-height:1.4em;margin:.6rem 0">${esc(msg || '')}</p><button class="btn" id="go" style="width:100%">Entrar</button></div>`;
+  const go = async () => {
+    const u = $('#usr').value.trim(), v = $('#pin').value; if (!u || !v) return;
+    $('#go').disabled = true; $('#go').textContent = 'Verificando…';
+    try {
+      const r = await rpc('liga_login', {p_usuario: u, p_senha: v});
+      if (r && r.token) { A.pin = r.token; A.me = {nome: r.nome, must_change: r.must_change}; localStorage.setItem('liga_token', r.token); await enterAdm(); }
+      else loginView('Usuário ou senha incorretos.');
+    } catch (e) { loginView('Erro: ' + e.message); }
+  };
+  $('#go').onclick = go; $('#pin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#usr').onkeydown = e => { if (e.key === 'Enter') $('#pin').focus(); };
+}
+function mustChangeView(msg) {
+  $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Olá, ${esc(A.me.nome.split(' ')[0])}! Crie sua senha</h2>
+    <p class="help" style="margin-bottom:.6rem">Primeiro acesso: troque a senha temporária por uma só sua (mínimo 6 caracteres).</p>
+    <label style="text-align:left">Senha temporária</label><input id="p0" type="password" autocomplete="current-password">
+    <label style="text-align:left">Nova senha</label><input id="p1" type="password" autocomplete="new-password">
+    <label style="text-align:left">Repita a nova senha</label><input id="p2" type="password" autocomplete="new-password">
+    <p style="color:var(--err);min-height:1.4em;margin:.6rem 0">${esc(msg || '')}</p><button class="btn" id="go" style="width:100%">Salvar e entrar</button></div>`;
+  $('#go').onclick = async () => {
+    if ($('#p1').value !== $('#p2').value) return mustChangeView('As senhas novas não conferem.');
+    try { await rpc('liga_change_password', {p_pin: A.pin, p_atual: $('#p0').value, p_nova: $('#p1').value}); A.me.must_change = false; await enterAdm(); }
+    catch (e) { mustChangeView(e.message); }
+  };
+}
+async function enterAdm() {
+  if (A.me && A.me.must_change) return mustChangeView();
+  await loadAll(true);
+  try { A.adminCfg = await rpc('liga_get_admin_config', {p_pin: A.pin}); } catch (e) {}
+  renderAdm();
+  setInterval(async () => { if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return; try { await loadAll(false); renderAdm(true); } catch (e) {} }, 8000);
+}
+
+async function refresh() { await loadAll(true); renderAdm(); }
+
+function renderAdm(soft) {
+  const root = $('#admroot');
+  const scrollY = scrollY_();
+  const C = calc();
+  const tabs = [['venda', '💰 Lançar venda'], ['medalha', '🎖️ Medalhas' + (C.sug.length ? ' (' + C.sug.length + ')' : '')], ['hist', '📋 Histórico'], ['equipe', '👥 Equipe'], ['cfg', '⚙️ Config']];
+  root.innerHTML = `
+    <div class="ah"><img src="assets/pronix-mark.svg" alt=""><h1>Super Liga <em>Águias</em> · ADM</h1><span class="sp"></span>
+      <span class="sync">👤 ${esc(A.me ? A.me.nome : '')}</span><a href="./" target="_blank">abrir telão ↗</a><a href="#" id="lo">sair</a></div>
+    <div class="sc" style="margin-bottom:1rem">
+      ${Object.keys(TEAMS).map(k => `<div class="scb ${k === 'dinossauro' ? 'd' : 's'}"><small>${TEAMS[k].nome} ${TEAMS[k].emoji}</small><b>${C.T[k].total} 🎖️</b><small>${C.T[k].mentoria} mentorias · ${C.T[k].imersao} imersões · ${C.T[k].hub} hubs · ${C.T[k].extra} extras</small></div>`).join('')}
+    </div>
+    <div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${A.tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div id="pane"></div>`;
+  $('#lo').onclick = async e => { e.preventDefault(); try { await rpc('liga_logout', {p_pin: A.pin}); } catch (x) {} localStorage.removeItem('liga_token'); A.pin = ''; location.reload(); };
+  root.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { A.tab = b.dataset.t; renderAdm(); });
+  ({venda: paneVenda, medalha: paneMedalha, hist: paneHist, equipe: paneEquipe, cfg: paneCfg})[A.tab](C);
+  if (soft) window.scrollTo(0, scrollY);
+}
+function scrollY_() { return window.scrollY; }
+
+function sellerBtn(v, C) {
+  return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${v.time === 'dinossauro' ? 'd' : 's'}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}<br><small>${CARGO[v.cargo]} · sem ${C.SS[v.id].semanas[currentWeek()]}/${v.meta}</small></span></button>`;
+}
+function previewVenda(C) {
+  if (!A.sel || !A.tipo) return 'Escolha o vendedor e o tipo de venda para ver a conversão em medalhas.';
+  const v = C.byId[A.sel], t = C.T[v.time], q = Math.max(1, +A.qtd || 1);
+  const nm = TEAMS[v.time].nome;
+  if (A.tipo === 'mentoria') return `<b>${esc(v.nome)}</b> · ${q} mentoria(s) = <b>+${q} 🎖️</b> para o ${nm}. Total do time: ${t.total} → <b>${t.total + q}</b> 🎖️`;
+  const d = A.tipo === 'imersao' ? 5 : 4, cur = t[A.tipo], nw = cur + q, ganha = Math.floor(nw / d) - Math.floor(cur / d);
+  return `<b>${esc(v.nome)}</b> · ${q} ${TIPOS[A.tipo].nome.toLowerCase()}(s). ${nm}: ${A.tipo === 'imersao' ? 'imersões' : 'hubs'} ${cur} → <b>${nw}</b> (a cada ${d} = 1 🎖️; faltam ${d - (nw % d || d)} para a próxima). ${ganha ? `<b style="color:var(--yellow)">+${ganha} 🎖️ AGORA!</b>` : ''}`;
+}
+function paneVenda(C) {
+  const col = k => `<div class="teamcol"><h3><span class="dot ${k === 'dinossauro' ? 'd' : 's'}" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${TEAMS[k].cor}"></span>${TEAMS[k].nome} ${TEAMS[k].emoji}</h3><div class="sellers">${S.vend.filter(v => v.time === k && v.ativo).map(v => sellerBtn(v, C)).join('')}</div></div>`;
+  $('#pane').innerHTML = `
+    <div class="card"><h2>1 · Quem vendeu?</h2><div class="row r2">${col('dinossauro')}${col('senhora')}</div></div>
+    <div class="card"><h2>2 · O que vendeu?</h2>
+      <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}<small>${t.reg}</small></button>`).join('')}</div>
+      <div class="row r2" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
+      <div><label>Data/hora (vazio = agora)</label><input id="dt" type="datetime-local" value="${A.data}"></div></div>
+      <div class="prev" id="prev">${previewVenda(C)}</div>
+      <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" ${A.sel && A.tipo ? '' : 'disabled'}>Registrar venda</button>
+      <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
+    <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
+  $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
+  $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
+  $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
+  $('#dt').onchange = e => { A.data = e.target.value; };
+  $('#reg').onclick = async () => {
+    const q = Math.max(1, parseInt(A.qtd) || 1);
+    $('#reg').disabled = true;
+    try {
+      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: A.data ? fromLocalInput(A.data) : null, p_obs: null});
+      const v = C.byId[A.sel];
+      toast('✅ ' + v.nome.split(' ')[0] + ': ' + q + '× ' + TIPOS[A.tipo].nome + ' registrada!');
+      A.tipo = null; A.qtd = 1; A.data = '';
+      await refresh(); syncSheet();
+    } catch (e) { toast(e.message, true); $('#reg').disabled = false; }
+  };
+  bindRowActions();
+}
+function lastRows(C, n) {
+  const rows = histRows(C).slice(0, n);
+  return rows.map(r => r.html).join('') || '<div class="help">Nenhum lançamento ainda.</div>';
+}
+function histRows(C) {
+  const rows = [];
+  S.vendas.forEach(s => { const v = C.byId[s.vendedor_id]; if (!v) return; rows.push({t: s.criado_em, time: v.time, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${TEAMS[v.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`}); });
+  S.med.forEach(m => { const v = m.vendedor_id ? C.byId[m.vendedor_id] : null; rows.push({t: m.criado_em, time: m.time, html: `<div class="li ${m.removida ? 'off' : ''}"><span class="t">${fmtBR(m.criado_em)}</span><span class="dot" style="background:${TEAMS[m.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">🎖️ <b>${esc(v ? v.nome : TEAMS[m.time].nome)}</b> · ${m.motivo === 'meta' ? 'meta da semana ' + (m.semana || '') : 'manual'}${m.obs ? ' — ' + esc(m.obs) : ''}${m.lancado_por ? ` <small style="opacity:.55">· por ${esc(m.lancado_por.split(' ')[0])}</small>` : ''}</span>${m.removida ? '<span class="badge" style="background:var(--err)">removida</span>' : ''}<button class="btn sm ${m.removida ? 'sec' : 'red'}" data-cm="${m.id}" data-st="${m.removida ? 0 : 1}">${m.removida ? 'Restaurar' : 'Remover'}</button></div>`}); });
+  return rows.sort((a, b) => new Date(b.t) - new Date(a.t));
+}
+function bindRowActions() {
+  $('#pane').querySelectorAll('[data-cv]').forEach(b => b.onclick = async () => {
+    const cancel = b.dataset.st === '1';
+    if (cancel && !confirm('Cancelar esta venda? As medalhas serão recalculadas.')) return;
+    try { await rpc('liga_set_venda_cancelada', {p_pin: A.pin, p_id: b.dataset.cv, p_cancelada: cancel}); await refresh(); syncSheet(); } catch (e) { toast(e.message, true); }
+  });
+  $('#pane').querySelectorAll('[data-cm]').forEach(b => b.onclick = async () => {
+    const rem = b.dataset.st === '1';
+    if (rem && !confirm('Remover esta medalha?')) return;
+    try { await rpc('liga_set_medalha_removida', {p_pin: A.pin, p_id: b.dataset.cm, p_removida: rem}); await refresh(); syncSheet(); } catch (e) { toast(e.message, true); }
+  });
+}
+
+function paneMedalha(C) {
+  const opts = S.vend.filter(v => v.ativo).map(v => `<option value="${v.id}">${esc(v.nome)} (${TEAMS[v.time].nome.replace('Time ', '')})</option>`).join('');
+  $('#pane').innerHTML = `
+    <div class="card"><h2>Metas semanais batidas — conceder 🎖️</h2>
+      <p class="help" style="margin-bottom:.6rem">O sistema avisa quando um vendedor atinge a meta da semana comercial (soma de todas as vendas). Clique para soltar a medalha no telão.</p>
+      <div class="lst">${C.sug.map((s, i) => `<div class="li sug"><span class="g">🎯 <b>${esc(s.v.nome)}</b> bateu a meta da Semana ${s.semana}: ${s.vendas}/${s.v.meta} vendas</span><button class="btn sm" data-sg="${i}">Conceder 🎖️</button></div>`).join('') || '<div class="help">Nenhuma meta pendente de medalha agora.</div>'}</div></div>
+    <div class="card"><h2>Adicionar medalha manual</h2>
+      <div class="row r3"><div><label>Vendedor</label><select id="mv">${opts}</select></div>
+      <div><label>Motivo</label><select id="mm"><option value="meta">Meta da semana</option><option value="manual">Outro (manual)</option></select></div>
+      <div><label>Semana (se meta)</label><select id="ms">${S.cfg.semanas.map((w, i) => `<option value="${i + 1}" ${i === currentWeek() ? 'selected' : ''}>${esc(w.nome)}</option>`).join('')}</select></div></div>
+      <label>Observação (aparece no telão)</label><input id="mo" placeholder="ex: desafio relâmpago">
+      <div style="margin-top:.8rem"><button class="btn" id="addm">Adicionar 🎖️</button></div></div>
+    <div class="card"><h2>Medalhas concedidas</h2><div class="lst">${histRows(C).filter(r => r.html.includes('data-cm')).map(r => r.html).join('') || '<div class="help">Nenhuma ainda.</div>'}</div></div>`;
+  $('#pane').querySelectorAll('[data-sg]').forEach(b => b.onclick = async () => {
+    const s = C.sug[+b.dataset.sg]; b.disabled = true;
+    try { await rpc('liga_add_medalha', {p_pin: A.pin, p_time: s.v.time, p_vendedor: s.v.id, p_motivo: 'meta', p_semana: s.semana, p_obs: null}); toast('🎖️ Medalha concedida a ' + s.v.nome.split(' ')[0]); await refresh(); syncSheet(); } catch (e) { toast(e.message, true); b.disabled = false; }
+  });
+  $('#addm').onclick = async () => {
+    const v = C.byId[$('#mv').value], mot = $('#mm').value;
+    try { await rpc('liga_add_medalha', {p_pin: A.pin, p_time: v.time, p_vendedor: v.id, p_motivo: mot, p_semana: mot === 'meta' ? +$('#ms').value : null, p_obs: $('#mo').value || null}); toast('🎖️ Medalha adicionada'); await refresh(); syncSheet(); } catch (e) { toast(e.message, true); }
+  };
+  bindRowActions();
+}
+
+function paneHist(C) {
+  $('#pane').innerHTML = `<div class="card"><h2>Histórico completo</h2>
+    <div class="row r3" style="margin-bottom:.8rem"><div><label>Filtrar time</label><select id="ft"><option value="todos">Todos</option>${Object.keys(TEAMS).map(k => `<option value="${k}" ${A.filtro === k ? 'selected' : ''}>${TEAMS[k].nome}</option>`).join('')}</select></div>
+    <div style="align-self:end"><button class="btn sec" id="csv">⬇ Baixar CSV</button></div><div style="align-self:end"><button class="btn sec" id="resync">↻ Reenviar tudo p/ planilha</button></div></div>
+    <div class="lst">${histRows(C).filter(r => A.filtro === 'todos' || r.time === A.filtro).map(r => r.html).join('') || '<div class="help">Vazio.</div>'}</div></div>`;
+  $('#ft').onchange = e => { A.filtro = e.target.value; renderAdm(); };
+  $('#csv').onclick = () => downloadCSV(C);
+  $('#resync').onclick = () => syncSheet(true);
+  bindRowActions();
+}
+
+function paneEquipe(C) {
+  const card = v => {
+    const id = v ? v.id : 'new';
+    const f = v && S.fotos[v.id];
+    return `<div class="card" data-e="${id}"><div class="ec"><div class="ph">${f ? `<img src="${f}">` : (v ? esc(v.nome[0]) : '+')}</div><div>
+      <div class="row r4"><div><label>Nome</label><input data-f="nome" value="${esc(v ? v.nome : '')}"></div>
+      <div><label>Apelido (opcional)</label><input data-f="apelido" value="${esc(v ? v.apelido || '' : '')}"></div>
+      <div><label>Time</label><select data-f="time">${Object.keys(TEAMS).map(k => `<option value="${k}" ${v && v.time === k ? 'selected' : ''}>${TEAMS[k].nome}</option>`).join('')}</select></div>
+      <div><label>Cargo</label><select data-f="cargo">${Object.entries(CARGO).map(([k, n]) => `<option value="${k}" ${v && v.cargo === k ? 'selected' : ''}>${n} (${k})</option>`).join('')}</select></div></div>
+      <div class="row r4"><div><label>Meta semanal (vendas)</label><input data-f="meta" type="number" min="1" value="${v ? v.meta : 4}"></div>
+      <div><label>Ativo</label><select data-f="ativo"><option value="true" ${!v || v.ativo ? 'selected' : ''}>Sim</option><option value="false" ${v && !v.ativo ? 'selected' : ''}>Não</option></select></div>
+      <div><label>Foto</label><input data-f="foto" type="file" accept="image/*"></div>
+      <div style="align-self:end;display:flex;gap:.4rem"><button class="btn sm" data-save="${id}">Salvar</button>${f ? `<button class="btn sm sec" data-nof="${id}">Tirar foto</button>` : ''}</div></div></div></div></div>`;
+  };
+  $('#pane').innerHTML = `<p class="help" style="margin-bottom:.8rem">Suba a foto dos líderes (Regiane e Sthefanie) para aparecerem no telão. As fotos são reduzidas automaticamente.</p>
+    ${Object.keys(TEAMS).map(k => `<h3 style="font-family:var(--head);text-transform:uppercase;margin:1rem 0 .5rem;color:${TEAMS[k].cor}">${TEAMS[k].nome}</h3>${S.vend.filter(v => v.time === k).map(card).join('')}`).join('')}
+    <h3 style="font-family:var(--head);text-transform:uppercase;margin:1rem 0 .5rem">Novo vendedor</h3>${card(null)}`;
+  $('#pane').querySelectorAll('[data-save]').forEach(b => b.onclick = async () => {
+    const box = b.closest('[data-e]'), id = b.dataset.save, g = n => box.querySelector('[data-f=' + n + ']');
+    let foto = null; const file = g('foto').files[0];
+    try {
+      if (file) foto = await shrink(file, 520);
+      if (!g('nome').value.trim()) throw new Error('Informe o nome');
+      await rpc('liga_upsert_vendedor', {p_pin: A.pin, p_id: id === 'new' ? null : id, p_nome: g('nome').value.trim(), p_apelido: g('apelido').value.trim() || null, p_time: g('time').value, p_cargo: g('cargo').value, p_meta: +g('meta').value || 1, p_foto: foto, p_ativo: g('ativo').value === 'true'});
+      toast('Salvo!'); await refresh(); syncSheet();
+    } catch (e) { toast(e.message, true); }
+  });
+  $('#pane').querySelectorAll('[data-nof]').forEach(b => b.onclick = async () => { try { await rpc('liga_clear_foto', {p_pin: A.pin, p_id: b.dataset.nof}); await refresh(); } catch (e) { toast(e.message, true); } });
+}
+function shrink(file, max) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = () => rej(new Error('Imagem inválida')); img.src = url;
+  });
+}
+
+function paneCfg(C) {
+  const cf = A.adminCfg || {webhook_url: '', semanas: S.cfg.semanas, inicio: S.cfg.inicio, fim: S.cfg.fim};
+  $('#pane').innerHTML = `
+    <div class="card"><h2>Período e semanas comerciais</h2>
+      <div class="row r2"><div><label>Início da liga</label><input id="ci" type="datetime-local" value="${toLocalInput(S.cfg.inicio)}"></div><div><label>Fim da liga (horário de Brasília)</label><input id="cf" type="datetime-local" value="${toLocalInput(S.cfg.fim)}"></div></div>
+      <h3>Semanas comerciais (usadas para a meta individual)</h3>
+      <div id="wks">${S.cfg.semanas.map((w, i) => `<div class="row r3 wk" style="margin-bottom:.4rem"><input class="wn" value="${esc(w.nome)}"><input class="wi" type="datetime-local" value="${toLocalInput(w.inicio)}"><input class="wf" type="datetime-local" value="${toLocalInput(w.fim)}"></div>`).join('')}</div>
+      <button class="btn sm sec" id="addw">+ semana</button> <button class="btn sm sec" id="remw">− última semana</button>
+      <p class="help" style="margin-top:.5rem">Padrão assumido: Semana 1 = 06 a 12/11 e Semana 2 = 13 a 17/11. Ajuste se a semana comercial for diferente.</p></div>
+    <div class="card"><h2>Planilha online (Google Sheets)</h2>
+      <label>URL do Apps Script (termina em /exec)</label><input id="wh" value="${esc(cf.webhook_url || '')}" placeholder="https://script.google.com/macros/s/.../exec">
+      <p class="help" style="margin:.5rem 0">Cada venda/medalha lançada reescreve as abas <b>Placar</b>, <b>Vendas</b> e <b>Medalhas</b> da planilha.</p>
+      <details><summary>Como ligar a planilha (1 minuto)</summary><ol class="help" style="margin:.6rem 0 .6rem 1.2rem">
+        <li>Crie uma planilha no Google Sheets (ou use a que já foi criada para a liga).</li><li>Extensões → Apps Script → apague o código e cole o script abaixo → Salvar.</li>
+        <li>Implantar → Nova implantação → Tipo: <b>App da Web</b> → Executar como: <b>Eu</b> → Acesso: <b>Qualquer pessoa</b> → Implantar (autorize quando pedir).</li><li>Copie a URL que termina em <code>/exec</code>, cole acima e salve. Depois clique em “Reenviar tudo”.</li></ol>
+        <button class="btn sm sec" id="cpgs">Copiar script</button></details></div>
+    <div class="card"><h2>Minha senha (${esc(A.me ? A.me.nome : '')})</h2><div class="row r3"><div><label>Senha atual</label><input id="pa" type="password" autocomplete="current-password"></div>
+      <div><label>Nova senha (mín. 6)</label><input id="np" type="password" autocomplete="new-password"></div><div style="align-self:end"><button class="btn sec" id="cpw">Trocar senha</button></div></div></div>
+    <button class="btn" id="svc" style="font-size:1.2rem;padding:.8rem 2rem">Salvar configurações</button>
+    <button class="btn sec" id="rs2" style="margin-left:.6rem">↻ Reenviar tudo p/ planilha</button>`;
+  $('#addw').onclick = () => { const n = S.cfg.semanas.length + 1; const last = S.cfg.semanas[S.cfg.semanas.length - 1]; S.cfg.semanas.push({nome: 'Semana ' + n, inicio: last.fim, fim: last.fim}); renderAdm(); };
+  $('#remw').onclick = () => { if (S.cfg.semanas.length > 1) { S.cfg.semanas.pop(); renderAdm(); } };
+  $('#cpgs').onclick = () => { navigator.clipboard.writeText(GS_CODE).then(() => toast('Script copiado!')); };
+  $('#rs2').onclick = () => syncSheet(true);
+  $('#cpw').onclick = async () => {
+    try { await rpc('liga_change_password', {p_pin: A.pin, p_atual: $('#pa').value, p_nova: $('#np').value}); $('#pa').value = ''; $('#np').value = ''; toast('Senha alterada'); }
+    catch (e) { toast(e.message, true); }
+  };
+  $('#svc').onclick = async () => {
+    try {
+      const semanas = [...document.querySelectorAll('.wk')].map(r => ({nome: r.querySelector('.wn').value, inicio: fromLocalInput(r.querySelector('.wi').value), fim: fromLocalInput(r.querySelector('.wf').value)}));
+      await rpc('liga_set_config', {p_pin: A.pin, p_inicio: fromLocalInput($('#ci').value), p_fim: fromLocalInput($('#cf').value), p_semanas: semanas, p_webhook: $('#wh').value.trim()});
+      A.adminCfg = await rpc('liga_get_admin_config', {p_pin: A.pin});
+      toast('Configurações salvas'); await refresh();
+    } catch (e) { toast(e.message, true); }
+  };
+}
+
+/* ------- planilha ------- */
+function buildPayload() {
+  const C = calc();
+  const placar = [['Time', 'Mentorias', 'Imersões', 'Hubs', '🎖️ por mentoria', '🎖️ por imersões', '🎖️ por hubs', '🎖️ metas/extras', 'TOTAL 🎖️']];
+  Object.keys(TEAMS).forEach(k => { const t = C.T[k]; placar.push([TEAMS[k].nome, t.mentoria, t.imersao, t.hub, t.medM, t.medI, t.medH, t.extra, t.total]); });
+  placar.push([]); placar.push(['Atualizado em', fmtBR(new Date().toISOString(), {dateStyle: 'short', timeStyle: 'medium'})]);
+  const vendas = [['Data/Hora', 'Time', 'Vendedor', 'Cargo', 'Tipo', 'Qtd', 'Status', 'Lançado por', 'ID']];
+  S.vendas.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(s => { const v = C.byId[s.vendedor_id]; if (v) vendas.push([fmtBR(s.criado_em, {dateStyle: 'short', timeStyle: 'short'}), TEAMS[v.time].nome, v.nome, v.cargo, TIPOS[s.tipo].nome, s.qtd, s.cancelada ? 'CANCELADA' : 'ok', s.lancado_por || '', s.id]); });
+  const medalhas = [['Data/Hora', 'Time', 'Vendedor', 'Motivo', 'Semana', 'Obs', 'Status', 'Lançado por', 'ID']];
+  S.med.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(m => { const v = m.vendedor_id ? C.byId[m.vendedor_id] : null; medalhas.push([fmtBR(m.criado_em, {dateStyle: 'short', timeStyle: 'short'}), TEAMS[m.time].nome, v ? v.nome : '(time)', m.motivo === 'meta' ? 'Meta da semana' : 'Manual', m.semana || '', m.obs || '', m.removida ? 'REMOVIDA' : 'ok', m.lancado_por || '', m.id]); });
+  return {placar, vendas, medalhas};
+}
+async function syncSheet(manual) {
+  const url = A.adminCfg && A.adminCfg.webhook_url;
+  if (!url) { if (manual) toast('Configure a URL da planilha em Config', true); return; }
+  try {
+    await fetch(url, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(buildPayload())});
+    A.saved = '📊 planilha atualizada ' + new Date().toLocaleTimeString('pt-BR'); const m = $('#syncmsg'); if (m) m.textContent = A.saved;
+    if (manual) toast('📊 Enviado para a planilha');
+  } catch (e) { toast('Falha ao enviar para a planilha', true); }
+}
+function downloadCSV(C) {
+  const p = buildPayload();
+  const toCsv = rows => rows.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(';')).join('\n');
+  const blob = new Blob(['﻿' + toCsv(p.vendas) + '\n\n' + toCsv(p.medalhas)], {type: 'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'super-liga-aguias.csv'; a.click();
+}
+
+/* ================= BOOT ================= */
+function boot() {
+  const isAdm = location.hash.startsWith('#admin') || /[?&]admin/.test(location.search);
+  if (isAdm) { document.body.classList.add('adm'); initAdm(); } else initTV();
+}
+addEventListener('hashchange', () => location.reload());
+boot();
+</script>
+</body>
+</html>
