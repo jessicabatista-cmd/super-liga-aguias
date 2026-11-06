@@ -783,7 +783,7 @@ function paneVenda(C) {
       <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}<small>${t.reg}</small></button>`).join('')}</div>
       <div class="row r3" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
       <div><label>Valor total da venda (R$)</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
-      <div><label>Data/hora (vazio = agora)</label><input id="dt" type="datetime-local" value="${A.data}"></div></div>
+      <div><label>Data e hora (vazio = agora)</label><input id="dt" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="dd/mm/aaaa hh:mm" value="${esc(A.data || '')}"></div></div>
       <div class="prev" id="prev">${previewVenda(C)}</div>
       <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" ${A.sel && A.tipo ? '' : 'disabled'}>Registrar venda</button>
       <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
@@ -791,13 +791,15 @@ function paneVenda(C) {
   $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
   $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
   $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
-  $('#dt').onchange = e => { A.data = e.target.value; };
+  $('#dt').oninput = e => { A.data = maskDataHora(e.target.value); e.target.value = A.data; };
   $('#vl').oninput = e => { A.valor = e.target.value; $('#prev').innerHTML = previewVenda(C); };
   $('#reg').onclick = async () => {
     const q = Math.max(1, parseInt(A.qtd) || 1);
+    const dataIso = A.data ? parseDataHora(A.data) : null;
+    if (A.data && !dataIso) { toast('Data/hora inválida. Use dd/mm/aaaa hh:mm (ou deixe vazio para agora).', true); return; }
     $('#reg').disabled = true;
     try {
-      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: A.data ? fromLocalInput(A.data) : null, p_obs: null, p_valor: parseMoney(A.valor)});
+      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: parseMoney(A.valor)});
       const v = C.byId[A.sel];
       toast('✅ ' + v.nome.split(' ')[0] + ': ' + q + '× ' + TIPOS[A.tipo].nome + ' registrada!');
       A.tipo = null; A.qtd = 1; A.data = ''; A.valor = '';
@@ -805,6 +807,28 @@ function paneVenda(C) {
     } catch (e) { toast(e.message, true); $('#reg').disabled = false; }
   };
   bindRowActions();
+}
+// digita só números: 061120261430 vira 06/11/2026 14:30 (as barras, o espaço e os dois pontos entram sozinhos)
+function maskDataHora(v) {
+  const d = String(v || '').replace(/\D/g, '').slice(0, 12);
+  let o = d.slice(0, 2);
+  if (d.length > 2) o += '/' + d.slice(2, 4);
+  if (d.length > 4) o += '/' + d.slice(4, 8);
+  if (d.length > 8) o += ' ' + d.slice(8, 10);
+  if (d.length > 10) o += ':' + d.slice(10, 12);
+  return o;
+}
+// "06/11/2026 14:30" -> ISO (horário de Brasília). Só data (10 caracteres) usa a hora de agora. Inválido -> null
+function parseDataHora(t) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/.exec(String(t || '').trim());
+  if (!m) return null;
+  let [, dd, mm, yy, hh, mi] = m;
+  if (hh === undefined) { const n = new Date().toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo', hour12: false}); hh = n.slice(11, 13); mi = n.slice(14, 16); }
+  const day = +dd, mon = +mm, yr = +yy, H = +hh, M = +mi;
+  if (mon < 1 || mon > 12 || day < 1 || day > 31 || H > 23 || M > 59 || yr < 2020 || yr > 2100) return null;
+  const dt = new Date(`${yy}-${mm}-${dd}T${hh}:${mi}:00-03:00`);
+  if (isNaN(dt) || dt.toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo'}).slice(0, 10) !== `${yy}-${mm}-${dd}`) return null; // ex.: 31/02
+  return dt.toISOString();
 }
 function parseMoney(t) {
   t = String(t || '').replace(/[^\d.,]/g, '');
