@@ -47,7 +47,7 @@ body.tv.showcursor{cursor:default}
 .clock .hms{font-family:var(--head);font-weight:500;font-size:1.4rem;letter-spacing:.14em;margin-top:.2rem;opacity:.8}
 
 .arena{flex:1;min-height:0;display:grid;grid-template-columns:1fr 6rem 1fr;align-items:stretch;gap:0}
-.vs{display:flex;align-items:flex-start;padding-top:19.75rem;justify-content:center;font-family:var(--head);font-weight:700;font-size:3.4rem;color:var(--yellow);text-shadow:0 0 1.4rem rgba(255,200,0,.7)}
+.vs{display:flex;align-items:flex-start;padding-top:18.35rem;justify-content:center;font-family:var(--head);font-weight:700;font-size:3.4rem;color:var(--yellow);text-shadow:0 0 1.4rem rgba(255,200,0,.7)}
 .vs span{transform:translateY(-50%) skewX(-15deg);animation:vs 1.6s ease-in-out infinite}
 @keyframes vs{50%{transform:translateY(-50%) skewX(-15deg) scale(1.25)}}
 
@@ -73,7 +73,7 @@ body.tv.showcursor{cursor:default}
 .vsum{margin-left:auto;text-align:right;border-right:.3rem solid var(--yellow);padding-right:1rem}
 .vsum small{display:block;font-size:1rem;letter-spacing:.28em;text-transform:uppercase;opacity:.75}
 .vsum b{font-family:var(--head);font-weight:700;font-size:2.8rem;color:var(--yellow);line-height:1.1;white-space:nowrap}
-.score{display:flex;align-items:center;justify-content:center;gap:1rem;line-height:1;margin:.1rem 0}
+.score{transform:translateY(-1.4rem);display:flex;align-items:center;justify-content:center;gap:1rem;line-height:1;margin:.1rem 0}
 .score .num{font-family:var(--head);font-weight:700;font-size:13rem;color:var(--c);text-shadow:0 0 2.5rem color-mix(in srgb,var(--c) 55%,transparent);font-variant-numeric:tabular-nums;line-height:.95}
 .score .medal{font-size:6.4rem;filter:drop-shadow(0 0 1rem rgba(255,200,0,.7));animation:float 2.8s ease-in-out infinite}
 @keyframes float{50%{transform:translateY(-.5rem) rotate(6deg)}}
