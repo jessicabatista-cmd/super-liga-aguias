@@ -112,6 +112,7 @@ body.tv.showcursor{cursor:default}
 .slide .ev small{opacity:.6;font-size:1.1rem;font-family:var(--body);text-transform:none;margin-left:.4rem}
 .slide .mv{display:flex;align-items:center;gap:.8rem;font-family:var(--head);text-transform:uppercase}
 .slide .mv b{font-size:2.2rem;color:var(--yellow)}
+img.emoji{height:1em;width:1em;margin:0 .06em;vertical-align:-.12em;display:inline-block}
 .dot{display:inline-block;width:.9rem;height:.9rem;border-radius:50%;margin-right:.5rem}
 .dot.d{background:var(--dino)}.dot.s{background:#fff}
 
@@ -239,6 +240,18 @@ details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-
 <div id="adm" class="hide"><div class="wrap" id="admroot"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@15.0.0/dist/twemoji.min.js"></script>
+<script>
+// Emojis como imagens (Twemoji): TVs e navegadores antigos não têm fonte de emoji colorida e mostram ícones quebrados.
+(function () {
+  if (!window.twemoji) return;
+  var opt = {base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/', folder: 'svg', ext: '.svg', className: 'emoji'};
+  var pend = false;
+  function run() { pend = false; try { twemoji.parse(document.body, opt); } catch (e) {} }
+  function sched() { if (!pend) { pend = true; requestAnimationFrame(run); } }
+  document.addEventListener('DOMContentLoaded', function () { run(); new MutationObserver(sched).observe(document.body, {childList: true, subtree: true, characterData: true}); });
+})();
+</script>
 <script>
 /*__GS_PLACEHOLDER__*/
 const GS_CODE = `// Super Liga Águias — recebe o placar do sistema e escreve nas abas Placar, Vendas e Medalhas.
