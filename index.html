@@ -122,24 +122,11 @@ body.tv.showcursor{cursor:default}
 #evt .k{font-family:var(--head);font-weight:700;font-size:11rem;line-height:1;text-transform:uppercase;letter-spacing:-.01em;color:var(--evc,var(--yellow));text-shadow:0 0 4rem var(--evc,var(--yellow))}
 #evt .s{font-family:var(--head);font-size:3.6rem;text-transform:uppercase;margin-top:.6rem;letter-spacing:.04em}
 #evt .m{font-size:7rem;display:block;margin-bottom:-.6rem;animation:float 1.2s ease-in-out infinite}
-/* águia voando com a faixa da venda */
-#flyer{position:absolute;left:0;top:27%;z-index:58;display:flex;align-items:center;pointer-events:none;will-change:transform}
-#flyer .bob{display:flex;align-items:center;animation:bob 1.1s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-2.2rem)}}
-#flyer .bn{--c:#fff;position:relative;min-width:42rem;padding:1.1rem 5rem 1.2rem 2.4rem;background:linear-gradient(100deg,#0e0b07,#17130d 60%,#241d0f);
-  border:.2rem solid var(--yellow);border-left:none;clip-path:polygon(0 0,100% 0,calc(100% - 2.4rem) 50%,100% 100%,0 100%);box-shadow:0 0 3rem rgba(255,200,0,.45)}
-#flyer .bn small{display:block;font-size:1.2rem;letter-spacing:.28em;text-transform:uppercase;color:var(--yellow);font-weight:600}
-#flyer .bn .who{display:block;font-family:var(--head);font-weight:700;font-size:5.4rem;line-height:1.05;text-transform:uppercase;color:var(--c);text-shadow:0 0 1.6rem color-mix(in srgb,var(--c) 60%,transparent);white-space:nowrap}
-#flyer .bn .prod{font-family:var(--head);font-weight:500;font-size:2.8rem;text-transform:uppercase;white-space:nowrap;letter-spacing:.03em}
-#flyer .bn .val{color:var(--yellow);font-weight:700;font-size:3.4rem;margin-left:.8rem}
-#flyer .rope{width:9rem;height:.25rem;background:repeating-linear-gradient(90deg,var(--yellow) 0 .6rem,transparent .6rem 1rem);margin-left:-1rem;margin-right:-.2rem;z-index:1}
-#flyer .eg{position:relative;width:36rem;height:24rem;flex:none;filter:drop-shadow(0 0 1.6rem rgba(255,200,0,.55))}
-#flyer .eg svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-#flyer .eg img{position:absolute;left:-2rem;top:-1rem;height:26rem;width:auto;z-index:2;
-  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 56% 46%,#000 60%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 56% 46%,#000 60%,transparent 100%)}
-.eg .wing{animation:flap .6s ease-in-out infinite;transform-origin:190px 270px}
-.eg .wing.far{animation-delay:-.1s;opacity:.8}
-@keyframes flap{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(56deg)}}
+/* águia real sobrevoando a tela; depois a venda aparece */
+#flyer{position:absolute;left:0;top:0;z-index:58;pointer-events:none;will-change:transform;transform-origin:50% 50%}
+#flyer img{display:block;width:62rem;height:auto;filter:drop-shadow(0 2.2rem 2rem rgba(0,0,0,.65)) drop-shadow(0 0 2.2rem rgba(255,200,0,.3))}
+#evt .s .lbl{display:block;font-size:2rem;letter-spacing:.3em;color:var(--yellow);margin-bottom:.4rem}
+#evt .s .val{color:var(--yellow);font-weight:700;font-size:5.2rem;margin-left:1.2rem;text-shadow:0 0 2rem rgba(255,200,0,.6)}
 .flash{position:fixed;inset:0;background:var(--evc,var(--yellow));opacity:0;z-index:55;pointer-events:none}
 .flash.on{animation:fl .9s ease-out}
 @keyframes fl{0%{opacity:.55}100%{opacity:0}}
@@ -416,26 +403,22 @@ function sfxScreech() {
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.12, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + 1.0);
   o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 1.05);
 }
-const EAGLE_HTML = `<div class="eg"><svg viewBox="0 0 576 384" xmlns="http://www.w3.org/2000/svg">
-  <path d="M430 292 L560 270 L540 296 L575 312 L535 322 L556 344 L470 330 L420 322 Z" fill="#2a1c0e" stroke="#ffc800" stroke-width="2.5" stroke-linejoin="round"/>
-  <path class="wing far" d="M190 270 C232 190 330 108 520 52 L490 88 L522 96 L480 120 L508 138 L460 154 L484 174 L420 184 L430 206 L360 218 C300 244 250 266 190 288 Z" fill="#2a1c0e" stroke="#ffc800" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M120 250 C190 215 330 225 430 285 C440 305 380 335 300 338 C220 340 150 330 120 300 Z" fill="#3a2812" stroke="#ffc800" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M250 275 L330 300 M280 262 L380 292 M230 300 L330 322" stroke="#ffc800" stroke-width="2" opacity=".35" fill="none"/>
-  <path class="wing near" d="M190 270 C236 180 340 90 540 28 L506 70 L542 80 L496 106 L528 126 L474 142 L500 164 L432 176 L444 200 L368 214 C306 242 252 266 190 292 Z" fill="#4a3216" stroke="#ffc800" stroke-width="3" stroke-linejoin="round"/>
-  <path class="wing near" d="M232 236 C290 170 370 112 480 70 M250 252 C320 196 400 150 470 118 M268 268 C330 220 400 186 440 168" stroke="#ffc800" stroke-width="2" opacity=".4" fill="none"/>
-</svg><img src="assets/aguia-voo.jpg" alt=""></div>`;
 function fmtMoney(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2}); }
-function flyEagle(e, ms, done) {
-  const fl = $('#flyer'), col = TEAMS[e.time].cor;
-  fl.innerHTML = `<div class="bob">${EAGLE_HTML}<div class="rope"></div><div class="bn" style="--c:${col}"><small>💰 Venda! · ${TEAMS[e.time].nome}</small><span class="who">${esc(e.who)}</span>
-    <div class="prod">${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}</div></div></div>`;
-  fl.style.top = Math.round(STAGE.h * .24) + 'px';
+// águia real (foto recortada) cruza a tela de ponta a ponta; chama onMid quando passa pelo meio
+function flyEagle(ms, onMid, done) {
+  const fl = $('#flyer');
+  fl.innerHTML = '<img src="assets/aguia-real.png" alt="">';
   fl.classList.remove('hide');
-  const w = fl.offsetWidth;
-  const a = fl.animate([{transform: `translateX(${STAGE.w + 40}px)`}, {transform: `translateX(${-w - 40}px)`}], {duration: ms, easing: 'linear'});
-  let fin = false;
+  const W = STAGE.w, H = STAGE.h, w = 62 * 16, h = w * 0.79;
+  const a = fl.animate([
+    {transform: `translate(${W + 60}px, ${H * .34}px) scale(.42) rotate(-7deg)`, offset: 0, easing: 'ease-in-out'},
+    {transform: `translate(${W * .5 - w / 2}px, ${H * .06}px) scale(1.02) rotate(1deg)`, offset: .5, easing: 'ease-in-out'},
+    {transform: `translate(${-w - 80}px, ${H * .26}px) scale(1.28) rotate(8deg)`, offset: 1}
+  ], {duration: ms, easing: 'linear'});
+  let fin = false, mid = false;
   const end = () => { if (fin) return; fin = true; fl.classList.add('hide'); done(); };
   a.onfinish = end;
+  setTimeout(() => { if (!mid) { mid = true; onMid(); } }, ms * .52);
   setTimeout(end, ms + 1500); // segurança: aba em segundo plano pausa a animação e a fila travaria
 }
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
@@ -665,11 +648,19 @@ function runQueue() {
   const big = e.kind !== 'sale';
   root.style.setProperty('--evc', col);
   $('#flash').style.setProperty('--evc', col);
-  if (!big) { // venda: águia atravessa a tela puxando a faixa com vendedor, produto e valor
-    const el = $('#t-' + e.time); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-    sfxSale(); sfxScreech();
-    setTimeout(() => confetti([col, '#ffc800'], 60, STAGE.h * .45), 3200);
-    flyEagle(e, TV.queue.length ? 5500 : 9000, () => { TV.busy = false; runQueue(); });
+  if (!big) { // venda: 1) águia sobrevoa a tela  2) ao passar pelo meio, o cartão da venda aparece
+    const eagleMs = TV.queue.length ? 4200 : 6200, cardMs = TV.queue.length ? 3200 : 5200;
+    sfxScreech();
+    flyEagle(eagleMs, () => {
+      $('#evm').textContent = '💰';
+      $('#evk').textContent = e.who;
+      $('#evs').innerHTML = `<span class="lbl">Nova venda · ${esc(TEAMS[e.time].nome)}</span>${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}`;
+      root.classList.add('on');
+      const fl2 = $('#flash'); fl2.classList.remove('on'); void fl2.offsetWidth; fl2.classList.add('on');
+      const el2 = $('#t-' + e.time); el2.classList.remove('bump'); void el2.offsetWidth; el2.classList.add('bump');
+      sfxSale(); confetti([col, '#ffc800', '#ffffff'], 90);
+      setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, cardMs);
+    }, () => {});
     return;
   }
   $('#evm').textContent = big ? '🎖️' : '💰';
