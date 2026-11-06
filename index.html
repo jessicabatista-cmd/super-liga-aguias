@@ -230,6 +230,7 @@ details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-
 <!-- ======= ADMIN ======= -->
 <div id="adm" class="hide"><div class="wrap" id="admroot"></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /*__GS_PLACEHOLDER__*/
 const GS_CODE = `// Super Liga Águias — recebe o placar do sistema e escreve nas abas Placar, Vendas e Medalhas.
@@ -283,8 +284,11 @@ async function api(path) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+let SBC = null; // cliente supabase (só no painel ADM)
 async function rpc(fn, args) {
-  const r = await fetch(SB + '/rest/v1/rpc/' + fn, {method: 'POST', headers: {...HDR, 'Content-Type': 'application/json'}, body: JSON.stringify(args)});
+  const h = {...HDR, 'Content-Type': 'application/json'};
+  if (SBC) { const {data} = await SBC.auth.getSession(); if (data.session) h.Authorization = 'Bearer ' + data.session.access_token; }
+  const r = await fetch(SB + '/rest/v1/rpc/' + fn, {method: 'POST', headers: h, body: JSON.stringify(args)});
   const t = await r.text();
   if (!r.ok) { let m = t; try { m = JSON.parse(t).message; } catch (e) {} throw new Error(m); }
   try { return t ? JSON.parse(t) : null; } catch (e) { return t; }
@@ -624,7 +628,7 @@ function checkFinal(T) {
 }
 
 /* ================= ADMIN ================= */
-const A = {pin: localStorage.getItem('liga_token') || '', me: null, tab: 'venda', sel: null, tipo: null, qtd: 1, data: '', filtro: 'todos', adminCfg: null, saved: ''};
+const A = {pin: 'jwt', me: null, tab: 'venda', sel: null, tipo: null, qtd: 1, data: '', filtro: 'todos', adminCfg: null, saved: ''};
 
 function toast(msg, err) {
   const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg; document.body.appendChild(t);
@@ -633,40 +637,32 @@ function toast(msg, err) {
 
 async function initAdm() {
   $('#adm').classList.remove('hide');
-  if (A.pin) { try { const me = await rpc('liga_me', {p_pin: A.pin}); if (me) { A.me = me; await enterAdm(); return; } } catch (e) {} A.pin = ''; localStorage.removeItem('liga_token'); }
-  loginView();
+  SBC = supabase.createClient(SB, KEY, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit'}});
+  const {data} = await SBC.auth.getSession();
+  if (!data.session) return loginView();
+  let me = null;
+  try { me = await rpc('liga_me', {}); } catch (e) {}
+  if (!me) return deniedView(data.session.user.email);
+  A.me = me; await enterAdm();
 }
 function loginView(msg) {
   $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Painel ADM · Super Liga Águias</h2>
-    <label style="text-align:left">Usuário</label><input id="usr" autocomplete="username" autocapitalize="none" placeholder="jessica, pedro ou guilherme" autofocus>
-    <label style="text-align:left">Senha</label><input id="pin" type="password" autocomplete="current-password">
-    <p style="color:var(--err);min-height:1.4em;margin:.6rem 0">${esc(msg || '')}</p><button class="btn" id="go" style="width:100%">Entrar</button></div>`;
-  const go = async () => {
-    const u = $('#usr').value.trim(), v = $('#pin').value; if (!u || !v) return;
-    $('#go').disabled = true; $('#go').textContent = 'Verificando…';
-    try {
-      const r = await rpc('liga_login', {p_usuario: u, p_senha: v});
-      if (r && r.token) { A.pin = r.token; A.me = {nome: r.nome, must_change: r.must_change}; localStorage.setItem('liga_token', r.token); await enterAdm(); }
-      else loginView('Usuário ou senha incorretos.');
-    } catch (e) { loginView('Erro: ' + e.message); }
-  };
-  $('#go').onclick = go; $('#pin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#usr').onkeydown = e => { if (e.key === 'Enter') $('#pin').focus(); };
-}
-function mustChangeView(msg) {
-  $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Olá, ${esc(A.me.nome.split(' ')[0])}! Crie sua senha</h2>
-    <p class="help" style="margin-bottom:.6rem">Primeiro acesso: troque a senha temporária por uma só sua (mínimo 6 caracteres).</p>
-    <label style="text-align:left">Senha temporária</label><input id="p0" type="password" autocomplete="current-password">
-    <label style="text-align:left">Nova senha</label><input id="p1" type="password" autocomplete="new-password">
-    <label style="text-align:left">Repita a nova senha</label><input id="p2" type="password" autocomplete="new-password">
-    <p style="color:var(--err);min-height:1.4em;margin:.6rem 0">${esc(msg || '')}</p><button class="btn" id="go" style="width:100%">Salvar e entrar</button></div>`;
+    <p class="help" style="margin:.4rem 0 1rem">Entre com seu e-mail Google da Pronix.</p>
+    <button class="btn" id="go" style="width:100%;font-size:1.1rem;padding:.9rem">Entrar com Google</button>
+    <p style="color:var(--err);min-height:1.4em;margin:.8rem 0 0">${esc(msg || '')}</p></div>`;
   $('#go').onclick = async () => {
-    if ($('#p1').value !== $('#p2').value) return mustChangeView('As senhas novas não conferem.');
-    try { await rpc('liga_change_password', {p_pin: A.pin, p_atual: $('#p0').value, p_nova: $('#p1').value}); A.me.must_change = false; await enterAdm(); }
-    catch (e) { mustChangeView(e.message); }
+    $('#go').disabled = true; $('#go').textContent = 'Abrindo o Google…';
+    const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html?admin=1', queryParams: {hd: 'pronix.com.br', prompt: 'select_account'}}});
+    if (error) loginView('Erro: ' + error.message);
   };
+}
+function deniedView(email) {
+  $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Sem acesso</h2>
+    <p class="help" style="margin:.6rem 0 1rem">A conta <b>${esc(email || '')}</b> não está autorizada a lançar vendas. Só Jéssica, Pedro e Guilherme têm acesso.</p>
+    <button class="btn sec" id="go" style="width:100%">Entrar com outra conta</button></div>`;
+  $('#go').onclick = async () => { await SBC.auth.signOut(); loginView(); };
 }
 async function enterAdm() {
-  if (A.me && A.me.must_change) return mustChangeView();
   await loadAll(true);
   try { A.adminCfg = await rpc('liga_get_admin_config', {p_pin: A.pin}); } catch (e) {}
   renderAdm();
@@ -688,7 +684,7 @@ function renderAdm(soft) {
     </div>
     <div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${A.tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div id="pane"></div>`;
-  $('#lo').onclick = async e => { e.preventDefault(); try { await rpc('liga_logout', {p_pin: A.pin}); } catch (x) {} localStorage.removeItem('liga_token'); A.pin = ''; location.reload(); };
+  $('#lo').onclick = async e => { e.preventDefault(); await SBC.auth.signOut(); location.href = 'index.html?admin=1'; };
   root.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { A.tab = b.dataset.t; renderAdm(); });
   ({venda: paneVenda, medalha: paneMedalha, hist: paneHist, equipe: paneEquipe, cfg: paneCfg})[A.tab](C);
   if (soft) window.scrollTo(0, scrollY);
@@ -851,18 +847,12 @@ function paneCfg(C) {
         <li>Crie uma planilha no Google Sheets (ou use a que já foi criada para a liga).</li><li>Extensões → Apps Script → apague o código e cole o script abaixo → Salvar.</li>
         <li>Implantar → Nova implantação → Tipo: <b>App da Web</b> → Executar como: <b>Eu</b> → Acesso: <b>Qualquer pessoa</b> → Implantar (autorize quando pedir).</li><li>Copie a URL que termina em <code>/exec</code>, cole acima e salve. Depois clique em “Reenviar tudo”.</li></ol>
         <button class="btn sm sec" id="cpgs">Copiar script</button></details></div>
-    <div class="card"><h2>Minha senha (${esc(A.me ? A.me.nome : '')})</h2><div class="row r3"><div><label>Senha atual</label><input id="pa" type="password" autocomplete="current-password"></div>
-      <div><label>Nova senha (mín. 6)</label><input id="np" type="password" autocomplete="new-password"></div><div style="align-self:end"><button class="btn sec" id="cpw">Trocar senha</button></div></div></div>
     <button class="btn" id="svc" style="font-size:1.2rem;padding:.8rem 2rem">Salvar configurações</button>
     <button class="btn sec" id="rs2" style="margin-left:.6rem">↻ Reenviar tudo p/ planilha</button>`;
   $('#addw').onclick = () => { const n = S.cfg.semanas.length + 1; const last = S.cfg.semanas[S.cfg.semanas.length - 1]; S.cfg.semanas.push({nome: 'Semana ' + n, inicio: last.fim, fim: last.fim}); renderAdm(); };
   $('#remw').onclick = () => { if (S.cfg.semanas.length > 1) { S.cfg.semanas.pop(); renderAdm(); } };
   $('#cpgs').onclick = () => { navigator.clipboard.writeText(GS_CODE).then(() => toast('Script copiado!')); };
   $('#rs2').onclick = () => syncSheet(true);
-  $('#cpw').onclick = async () => {
-    try { await rpc('liga_change_password', {p_pin: A.pin, p_atual: $('#pa').value, p_nova: $('#np').value}); $('#pa').value = ''; $('#np').value = ''; toast('Senha alterada'); }
-    catch (e) { toast(e.message, true); }
-  };
   $('#svc').onclick = async () => {
     try {
       const semanas = [...document.querySelectorAll('.wk')].map(r => ({nome: r.querySelector('.wn').value, inicio: fromLocalInput(r.querySelector('.wi').value), fim: fromLocalInput(r.querySelector('.wf').value)}));
@@ -906,7 +896,6 @@ function boot() {
   const isAdm = location.hash.startsWith('#admin') || /[?&]admin/.test(location.search);
   if (isAdm) { document.body.classList.add('adm'); initAdm(); } else initTV();
 }
-addEventListener('hashchange', () => location.reload());
 boot();
 </script>
 </body>
