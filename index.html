@@ -119,6 +119,21 @@ body.tv.showcursor{cursor:default}
 #evt .k{font-family:var(--head);font-weight:700;font-size:11rem;line-height:1;text-transform:uppercase;letter-spacing:-.01em;color:var(--evc,var(--yellow));text-shadow:0 0 4rem var(--evc,var(--yellow))}
 #evt .s{font-family:var(--head);font-size:3.6rem;text-transform:uppercase;margin-top:.6rem;letter-spacing:.04em}
 #evt .m{font-size:7rem;display:block;margin-bottom:-.6rem;animation:float 1.2s ease-in-out infinite}
+/* águia voando com a faixa da venda */
+#flyer{position:absolute;left:0;top:27%;z-index:58;display:flex;align-items:center;pointer-events:none;will-change:transform}
+#flyer .bob{display:flex;align-items:center;animation:bob 1.1s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2.2rem)}}
+#flyer .bn{--c:#fff;position:relative;min-width:42rem;padding:1.1rem 4rem 1.2rem 3rem;background:linear-gradient(100deg,#0e0b07,#17130d 60%,#241d0f);
+  border:.2rem solid var(--yellow);border-right:none;clip-path:polygon(0 0,100% 0,calc(100% - 2.2rem) 100%,0 100%);box-shadow:0 0 3rem rgba(255,200,0,.45)}
+#flyer .bn small{display:block;font-size:1.2rem;letter-spacing:.28em;text-transform:uppercase;color:var(--yellow);font-weight:600}
+#flyer .bn .who{display:block;font-family:var(--head);font-weight:700;font-size:5.4rem;line-height:1.05;text-transform:uppercase;color:var(--c);text-shadow:0 0 1.6rem color-mix(in srgb,var(--c) 60%,transparent);white-space:nowrap}
+#flyer .bn .prod{font-family:var(--head);font-weight:500;font-size:2.8rem;text-transform:uppercase;white-space:nowrap;letter-spacing:.03em}
+#flyer .bn .val{color:var(--yellow);font-weight:700;font-size:3.4rem;margin-left:.8rem}
+#flyer .rope{width:5rem;height:.25rem;background:repeating-linear-gradient(90deg,var(--yellow) 0 .6rem,transparent .6rem 1rem);margin-left:-1.2rem;z-index:-1}
+#flyer svg.eagle{width:34rem;margin-left:-1rem;height:auto;overflow:visible;filter:drop-shadow(0 0 1.6rem rgba(255,200,0,.65))}
+.eagle .wing{animation:flap .55s ease-in-out infinite;transform-origin:150px 94px}
+.eagle .wing.far{animation-delay:-.08s;opacity:.85}
+@keyframes flap{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-70deg)}}
 .flash{position:fixed;inset:0;background:var(--evc,var(--yellow));opacity:0;z-index:55;pointer-events:none}
 .flash.on{animation:fl .9s ease-out}
 @keyframes fl{0%{opacity:.55}100%{opacity:0}}
@@ -224,6 +239,7 @@ details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-
   </footer>
   <div class="flash" id="flash"></div>
   <div id="evt"><span class="m" id="evm"></span><div class="k" id="evk"></div><div class="s" id="evs"></div></div>
+  <div id="flyer" class="hide"></div>
   <div id="final" class="hide"></div>
 </div>
 
@@ -386,6 +402,34 @@ function tone(f, t0, d, type, vol) {
   g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + t0 + d);
   o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + d + .02);
 }
+function sfxScreech() {
+  if (!soundOn || !AC) return;
+  const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(2200, t); o.frequency.exponentialRampToValueAtTime(1500, t + .5); o.frequency.exponentialRampToValueAtTime(2600, t + .9);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.12, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + 1.0);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 1.05);
+}
+const EAGLE_SVG = `<svg class="eagle" viewBox="0 0 330 170" xmlns="http://www.w3.org/2000/svg">
+  <path d="M30 128 L84 104 L130 112 L82 138 Z M24 114 L84 100 L74 116 Z" fill="#f3efe9"/>
+  <path class="wing far" d="M150 94 C140 60 110 26 52 8 L68 30 L40 36 L64 52 L38 62 L68 74 L52 88 L96 98 C120 102 140 102 150 100 Z" fill="#3b2713" stroke="#ffc800" stroke-width="2"/>
+  <path d="M56 108 C88 80 170 76 218 92 C240 100 244 114 224 124 C190 138 112 134 56 108 Z" fill="#5a3d1c" stroke="#ffc800" stroke-width="2.5"/>
+  <path d="M206 96 C214 70 238 62 252 72 C264 80 262 100 246 108 C232 114 214 112 206 96 Z" fill="#f3efe9"/>
+  <path d="M252 80 L292 92 L268 106 L256 98 Z" fill="#ffc800" stroke="#e6b200" stroke-width="2"/>
+  <circle cx="246" cy="84" r="4" fill="#17130d"/><path d="M236 76 L254 80" stroke="#17130d" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M120 134 L112 156 M120 134 L128 156 M150 136 L142 158 M150 136 L158 158" stroke="#ffc800" stroke-width="5" stroke-linecap="round"/>
+  <path class="wing near" d="M150 94 C138 56 104 20 40 2 L58 28 L26 34 L54 52 L24 62 L58 76 L40 92 L92 100 C120 104 140 104 150 100 Z" fill="#7a5226" stroke="#ffc800" stroke-width="2.5"/>
+</svg>`;
+function fmtMoney(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2}); }
+function flyEagle(e, ms, done) {
+  const fl = $('#flyer'), col = TEAMS[e.time].cor;
+  fl.innerHTML = `<div class="bob"><div class="bn" style="--c:${col}"><small>💰 Venda! · ${TEAMS[e.time].nome}</small><span class="who">${esc(e.who)}</span>
+    <div class="prod">${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}</div></div><div class="rope"></div>${EAGLE_SVG}</div>`;
+  fl.style.top = Math.round(STAGE.h * .24) + 'px';
+  fl.classList.remove('hide');
+  const w = fl.offsetWidth;
+  const a = fl.animate([{transform: `translateX(${-w - 40}px)`}, {transform: `translateX(${STAGE.w + 40}px)`}], {duration: ms, easing: 'linear'});
+  a.onfinish = () => { fl.classList.add('hide'); done(); };
+}
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
 function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
 
@@ -484,7 +528,7 @@ function renderTV(initial) {
       if (TV.seenV.has(s.id)) return; TV.seenV.add(s.id);
       if (s.cancelada || !byId[s.vendedor_id]) return;
       const v = byId[s.vendedor_id];
-      ev.push({kind: 'sale', time: v.time, who: firstName(v), txt: (s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome});
+      ev.push({kind: 'sale', time: v.time, who: firstName(v), txt: (s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome, valor: s.valor ? +s.valor : 0});
     });
     S.med.slice().reverse().forEach(m => {
       if (TV.seenM.has(m.id)) return; TV.seenM.add(m.id);
@@ -604,6 +648,13 @@ function runQueue() {
   const big = e.kind !== 'sale';
   root.style.setProperty('--evc', col);
   $('#flash').style.setProperty('--evc', col);
+  if (!big) { // venda: águia atravessa a tela puxando a faixa com vendedor, produto e valor
+    const el = $('#t-' + e.time); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    sfxSale(); sfxScreech();
+    setTimeout(() => confetti([col, '#ffc800'], 60, STAGE.h * .45), 3200);
+    flyEagle(e, TV.queue.length ? 5500 : 9000, () => { TV.busy = false; runQueue(); });
+    return;
+  }
   $('#evm').textContent = big ? '🎖️' : '💰';
   $('#evk').textContent = big ? 'Medalha!' : 'Venda!';
   $('#evs').innerHTML = `<span style="color:${col}">${esc(e.who)}</span> · ${esc(e.txt)}`;
@@ -709,7 +760,8 @@ function paneVenda(C) {
     <div class="card"><h2>1 · Quem vendeu?</h2><div class="row r2">${col('dinossauro')}${col('senhora')}</div></div>
     <div class="card"><h2>2 · O que vendeu?</h2>
       <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}<small>${t.reg}</small></button>`).join('')}</div>
-      <div class="row r2" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
+      <div class="row r3" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
+      <div><label>Valor total da venda (R$)</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
       <div><label>Data/hora (vazio = agora)</label><input id="dt" type="datetime-local" value="${A.data}"></div></div>
       <div class="prev" id="prev">${previewVenda(C)}</div>
       <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" ${A.sel && A.tipo ? '' : 'disabled'}>Registrar venda</button>
@@ -719,18 +771,25 @@ function paneVenda(C) {
   $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
   $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
   $('#dt').onchange = e => { A.data = e.target.value; };
+  $('#vl').oninput = e => { A.valor = e.target.value; };
   $('#reg').onclick = async () => {
     const q = Math.max(1, parseInt(A.qtd) || 1);
     $('#reg').disabled = true;
     try {
-      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: A.data ? fromLocalInput(A.data) : null, p_obs: null});
+      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: A.data ? fromLocalInput(A.data) : null, p_obs: null, p_valor: parseMoney(A.valor)});
       const v = C.byId[A.sel];
       toast('✅ ' + v.nome.split(' ')[0] + ': ' + q + '× ' + TIPOS[A.tipo].nome + ' registrada!');
-      A.tipo = null; A.qtd = 1; A.data = '';
+      A.tipo = null; A.qtd = 1; A.data = ''; A.valor = '';
       await refresh(); syncSheet();
     } catch (e) { toast(e.message, true); $('#reg').disabled = false; }
   };
   bindRowActions();
+}
+function parseMoney(t) {
+  t = String(t || '').replace(/[^\d.,]/g, '');
+  if (!t) return null;
+  const n = parseFloat(t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t);
+  return isFinite(n) && n >= 0 ? n : null;
 }
 function lastRows(C, n) {
   const rows = histRows(C).slice(0, n);
@@ -738,7 +797,7 @@ function lastRows(C, n) {
 }
 function histRows(C) {
   const rows = [];
-  S.vendas.forEach(s => { const v = C.byId[s.vendedor_id]; if (!v) return; rows.push({t: s.criado_em, time: v.time, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${TEAMS[v.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`}); });
+  S.vendas.forEach(s => { const v = C.byId[s.vendedor_id]; if (!v) return; rows.push({t: s.criado_em, time: v.time, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${TEAMS[v.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.valor ? ' · ' + fmtMoney(+s.valor) : ''}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`}); });
   S.med.forEach(m => { const v = m.vendedor_id ? C.byId[m.vendedor_id] : null; rows.push({t: m.criado_em, time: m.time, html: `<div class="li ${m.removida ? 'off' : ''}"><span class="t">${fmtBR(m.criado_em)}</span><span class="dot" style="background:${TEAMS[m.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">🎖️ <b>${esc(v ? v.nome : TEAMS[m.time].nome)}</b> · ${m.motivo === 'meta' ? 'meta da semana ' + (m.semana || '') : 'manual'}${m.obs ? ' — ' + esc(m.obs) : ''}${m.lancado_por ? ` <small style="opacity:.55">· por ${esc(m.lancado_por.split(' ')[0])}</small>` : ''}</span>${m.removida ? '<span class="badge" style="background:var(--err)">removida</span>' : ''}<button class="btn sm ${m.removida ? 'sec' : 'red'}" data-cm="${m.id}" data-st="${m.removida ? 0 : 1}">${m.removida ? 'Restaurar' : 'Remover'}</button></div>`}); });
   return rows.sort((a, b) => new Date(b.t) - new Date(a.t));
 }
@@ -870,8 +929,8 @@ function buildPayload() {
   const placar = [['Time', 'Mentorias', 'Imersões', 'Hubs', '🎖️ por mentoria', '🎖️ por imersões', '🎖️ por hubs', '🎖️ metas/extras', 'TOTAL 🎖️']];
   Object.keys(TEAMS).forEach(k => { const t = C.T[k]; placar.push([TEAMS[k].nome, t.mentoria, t.imersao, t.hub, t.medM, t.medI, t.medH, t.extra, t.total]); });
   placar.push([]); placar.push(['Atualizado em', fmtBR(new Date().toISOString(), {dateStyle: 'short', timeStyle: 'medium'})]);
-  const vendas = [['Data/Hora', 'Time', 'Vendedor', 'Cargo', 'Tipo', 'Qtd', 'Status', 'Lançado por', 'ID']];
-  S.vendas.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(s => { const v = C.byId[s.vendedor_id]; if (v) vendas.push([fmtBR(s.criado_em, {dateStyle: 'short', timeStyle: 'short'}), TEAMS[v.time].nome, v.nome, v.cargo, TIPOS[s.tipo].nome, s.qtd, s.cancelada ? 'CANCELADA' : 'ok', s.lancado_por || '', s.id]); });
+  const vendas = [['Data/Hora', 'Time', 'Vendedor', 'Cargo', 'Tipo', 'Qtd', 'Valor (R$)', 'Status', 'Lançado por', 'ID']];
+  S.vendas.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(s => { const v = C.byId[s.vendedor_id]; if (v) vendas.push([fmtBR(s.criado_em, {dateStyle: 'short', timeStyle: 'short'}), TEAMS[v.time].nome, v.nome, v.cargo, TIPOS[s.tipo].nome, s.qtd, s.valor != null ? +s.valor : '', s.cancelada ? 'CANCELADA' : 'ok', s.lancado_por || '', s.id]); });
   const medalhas = [['Data/Hora', 'Time', 'Vendedor', 'Motivo', 'Semana', 'Obs', 'Status', 'Lançado por', 'ID']];
   S.med.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(m => { const v = m.vendedor_id ? C.byId[m.vendedor_id] : null; medalhas.push([fmtBR(m.criado_em, {dateStyle: 'short', timeStyle: 'short'}), TEAMS[m.time].nome, v ? v.nome : '(time)', m.motivo === 'meta' ? 'Meta da semana' : 'Manual', m.semana || '', m.obs || '', m.removida ? 'REMOVIDA' : 'ok', m.lancado_por || '', m.id]); });
   return {placar, vendas, medalhas};
