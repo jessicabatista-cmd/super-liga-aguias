@@ -652,7 +652,8 @@ function loginView(msg) {
     <p style="color:var(--err);min-height:1.4em;margin:.8rem 0 0">${esc(msg || '')}</p></div>`;
   $('#go').onclick = async () => {
     $('#go').disabled = true; $('#go').textContent = 'Abrindo o Google…';
-    const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html?admin=1', queryParams: {hd: 'pronix.com.br', prompt: 'select_account'}}});
+    try { sessionStorage.setItem('liga_admin', '1'); } catch (e) {}
+    const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + '/', queryParams: {hd: 'pronix.com.br', prompt: 'select_account'}}});
     if (error) loginView('Erro: ' + error.message);
   };
 }
@@ -684,7 +685,7 @@ function renderAdm(soft) {
     </div>
     <div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${A.tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div id="pane"></div>`;
-  $('#lo').onclick = async e => { e.preventDefault(); await SBC.auth.signOut(); location.href = 'index.html?admin=1'; };
+  $('#lo').onclick = async e => { e.preventDefault(); await SBC.auth.signOut(); try { sessionStorage.removeItem('liga_admin'); } catch (x) {} location.href = 'index.html?admin=1'; };
   root.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { A.tab = b.dataset.t; renderAdm(); });
   ({venda: paneVenda, medalha: paneMedalha, hist: paneHist, equipe: paneEquipe, cfg: paneCfg})[A.tab](C);
   if (soft) window.scrollTo(0, scrollY);
@@ -893,7 +894,8 @@ function downloadCSV(C) {
 
 /* ================= BOOT ================= */
 function boot() {
-  const isAdm = location.hash.startsWith('#admin') || /[?&]admin/.test(location.search);
+  let flag = false; try { flag = sessionStorage.getItem('liga_admin') === '1'; } catch (e) {}
+  const isAdm = location.hash.startsWith('#admin') || /[?&]admin/.test(location.search) || (flag && /access_token|error_description/.test(location.hash));
   if (isAdm) { document.body.classList.add('adm'); initAdm(); } else initTV();
 }
 boot();
