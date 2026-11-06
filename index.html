@@ -641,15 +641,14 @@ function renderBottom(SS) {
   evs.sort((a, b) => new Date(b.t) - new Date(a.t));
   const top = Object.values(SS).filter(s => s.v.ativo && (s.pts > 0 || s.total > 0)).sort((a, b) => b.pts - a.pts || b.total - a.total).slice(0, 3);
   TV.sl = [
-    {lab: 'Últimas jogadas', html: evs.slice(0, 4).map(e => e.h).join('') || '<span class="ev">Nenhuma venda ainda — bora abrir o placar! 🚀</span>'},
-    {lab: 'Corrida do MVP', html: !top.length ? '<span class="ev">Quem vai abrir a corrida do MVP? 🏆 Ninguém pontuou ainda!</span>' : top.map((s, i) => `<span class="mv">${['🥇', '🥈', '🥉'][i]} <span class="dot ${s.v.time === 'dinossauro' ? 'd' : 's'}"></span>${esc(s.v.nome.split(' ')[0])} <b>${s.pts}</b>🎖️ <small style="opacity:.6;font-size:1.1rem">· ${s.total} vendas</small></span>`).join('')}
+    {lab: 'Últimas jogadas', html: evs.slice(0, 4).map(e => e.h).join('') || '<span class="ev">Nenhuma venda ainda — bora abrir o placar! 🚀</span>'}
   ];
-  const cur = TV.slide % 2;
+  const cur = 0; TV.slide = 0;
   $('#sl' + cur).innerHTML = TV.sl[cur].html;
   $('#blab').textContent = TV.sl[cur].lab;
 }
 function rotateBottom() {
-  if (!TV.sl) return;
+  if (!TV.sl || TV.sl.length < 2) return;
   const nxt = (TV.slide + 1) % 2;
   $('#sl' + nxt).innerHTML = TV.sl[nxt].html;
   $('#sl' + (TV.slide % 2)).classList.remove('on');
