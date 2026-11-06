@@ -70,6 +70,9 @@ body.tv.showcursor{cursor:default}
   background:#17130d;color:var(--c);font-family:var(--head);font-weight:700;font-size:3.2rem;clip-path:polygon(.8rem 0,100% 0,100% calc(100% - .8rem),calc(100% - .8rem) 100%,0 100%,0 .8rem)}
 .leader small{display:block;font-size:1rem;letter-spacing:.3em;opacity:.7;text-transform:uppercase}
 .leader b{font-family:var(--head);font-size:1.9rem;text-transform:uppercase;line-height:1.05;font-weight:700}
+.vsum{margin-left:auto;text-align:right;border-right:.3rem solid var(--yellow);padding-right:1rem}
+.vsum small{display:block;font-size:1rem;letter-spacing:.28em;text-transform:uppercase;opacity:.75}
+.vsum b{font-family:var(--head);font-weight:700;font-size:2.8rem;color:var(--yellow);line-height:1.1;white-space:nowrap}
 .score{display:flex;align-items:center;justify-content:center;gap:1rem;line-height:1;margin:.1rem 0}
 .score .num{font-family:var(--head);font-weight:700;font-size:13rem;color:var(--c);text-shadow:0 0 2.5rem color-mix(in srgb,var(--c) 55%,transparent);font-variant-numeric:tabular-nums;line-height:.95}
 .score .medal{font-size:6.4rem;filter:drop-shadow(0 0 1rem rgba(255,200,0,.7));animation:float 2.8s ease-in-out infinite}
@@ -359,7 +362,7 @@ function calc() {
   const ini = +new Date(S.cfg.inicio), fim = +new Date(S.cfg.fim);
   const byId = {}; S.vend.forEach(v => byId[v.id] = v);
   const T = {};
-  Object.keys(TEAMS).forEach(k => T[k] = {k, mentoria: 0, imersao: 0, hub: 0, extra: 0, medM: 0, medI: 0, medH: 0, total: 0});
+  Object.keys(TEAMS).forEach(k => T[k] = {k, mentoria: 0, imersao: 0, hub: 0, extra: 0, medM: 0, medI: 0, medH: 0, total: 0, valor: 0});
   const SS = {}; // por vendedor
   S.vend.forEach(v => SS[v.id] = {v, mentoria: 0, imersao: 0, hub: 0, total: 0, semanas: S.cfg.semanas.map(() => 0), extra: 0, extraSem: {}, pts: 0});
   for (const s of S.vendas) {
@@ -367,6 +370,7 @@ function calc() {
     const t = +new Date(s.criado_em); if (t < ini || t > fim) continue;
     const v = byId[s.vendedor_id]; if (!v) continue;
     T[v.time][s.tipo] += s.qtd;
+    T[v.time].valor += +s.valor || 0;
     const ss = SS[v.id]; ss[s.tipo] += s.qtd; ss.total += s.qtd;
     const wi = weekIdx(t); if (wi >= 0) ss.semanas[wi] += s.qtd;
   }
@@ -571,7 +575,8 @@ function renderTV(initial) {
     el.innerHTML = `
       <div class="tag"><span>${TEAMS[k].nome} ${TEAMS[k].emoji}</span>${t.total === other.total ? (t.total ? '<span class="crown">EMPATE</span>' : '') : lead ? '<span class="crown">👑 LIDERANDO</span>' : ''}</div>
       <div class="leader"><div class="photo">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
-        <div><small>Líder do time</small><b>${lider ? esc(lider.nome.split(' ')[0]) + (lider.apelido ? ' “' + esc(lider.apelido) + '” ' + esc(lider.nome.split(' ').slice(1).join(' ')) : ' ' + esc(lider.nome.split(' ').slice(1).join(' '))) : ''}</b></div></div>
+        <div><small>Líder do time</small><b>${lider ? esc(lider.nome.split(' ')[0]) + (lider.apelido ? ' “' + esc(lider.apelido) + '” ' + esc(lider.nome.split(' ').slice(1).join(' ')) : ' ' + esc(lider.nome.split(' ').slice(1).join(' '))) : ''}</b></div>
+        <div class="vsum"><small>Total vendido</small><b>${fmtMoney(t.valor)}</b></div></div>
       <div class="score"><span class="num" data-v="${old ?? 0}">${old ?? 0}</span><span class="medal">🎖️</span></div>
       <div class="chips">
         <div class="chip"><small>Mentorias</small><b>${t.mentoria} <i>= ${t.medM}🎖️</i></b></div>
@@ -733,7 +738,7 @@ function renderAdm(soft) {
     <div class="ah"><img src="assets/pronix-mark.svg" alt=""><h1>Super Liga <em>Águias</em> · ADM</h1><span class="sp"></span>
       <span class="sync">👤 ${esc(A.me ? A.me.nome : '')}</span><a href="./" target="_blank">abrir telão ↗</a><a href="#" id="lo">sair</a></div>
     <div class="sc" style="margin-bottom:1rem">
-      ${Object.keys(TEAMS).map(k => `<div class="scb ${k === 'dinossauro' ? 'd' : 's'}"><small>${TEAMS[k].nome} ${TEAMS[k].emoji}</small><b>${C.T[k].total} 🎖️</b><small>${C.T[k].mentoria} mentorias · ${C.T[k].imersao} imersões · ${C.T[k].hub} hubs · ${C.T[k].extra} extras</small></div>`).join('')}
+      ${Object.keys(TEAMS).map(k => `<div class="scb ${k === 'dinossauro' ? 'd' : 's'}"><small>${TEAMS[k].nome} ${TEAMS[k].emoji}</small><b>${C.T[k].total} 🎖️</b><small style="color:var(--yellow);font-weight:700;opacity:1">💰 ${fmtMoney(C.T[k].valor)} vendidos</small><br><small>${C.T[k].mentoria} mentorias · ${C.T[k].imersao} imersões · ${C.T[k].hub} hubs · ${C.T[k].extra} extras</small></div>`).join('')}
     </div>
     <div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${A.tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div id="pane"></div>`;
@@ -748,6 +753,12 @@ function sellerBtn(v, C) {
   return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${v.time === 'dinossauro' ? 'd' : 's'}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}<br><small>${CARGO[v.cargo]} · sem ${C.SS[v.id].semanas[currentWeek()]}/${v.meta}</small></span></button>`;
 }
 function previewVenda(C) {
+  const base = previewMedalhas(C), val = parseMoney(A.valor);
+  if (!A.sel || !A.tipo || val == null) return base;
+  const t = C.T[C.byId[A.sel].time];
+  return base + `<br>💰 <b>+${fmtMoney(val)}</b> · total vendido do ${TEAMS[C.byId[A.sel].time].nome}: ${fmtMoney(t.valor)} → <b style="color:var(--yellow)">${fmtMoney(t.valor + val)}</b>`;
+}
+function previewMedalhas(C) {
   if (!A.sel || !A.tipo) return 'Escolha o vendedor e o tipo de venda para ver a conversão em medalhas.';
   const v = C.byId[A.sel], t = C.T[v.time], q = Math.max(1, +A.qtd || 1);
   const nm = TEAMS[v.time].nome;
@@ -772,7 +783,7 @@ function paneVenda(C) {
   $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
   $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
   $('#dt').onchange = e => { A.data = e.target.value; };
-  $('#vl').oninput = e => { A.valor = e.target.value; };
+  $('#vl').oninput = e => { A.valor = e.target.value; $('#prev').innerHTML = previewVenda(C); };
   $('#reg').onclick = async () => {
     const q = Math.max(1, parseInt(A.qtd) || 1);
     $('#reg').disabled = true;
@@ -927,8 +938,8 @@ function paneCfg(C) {
 /* ------- planilha ------- */
 function buildPayload() {
   const C = calc();
-  const placar = [['Time', 'Mentorias', 'Imersões', 'Hubs', '🎖️ por mentoria', '🎖️ por imersões', '🎖️ por hubs', '🎖️ metas/extras', 'TOTAL 🎖️']];
-  Object.keys(TEAMS).forEach(k => { const t = C.T[k]; placar.push([TEAMS[k].nome, t.mentoria, t.imersao, t.hub, t.medM, t.medI, t.medH, t.extra, t.total]); });
+  const placar = [['Time', 'Mentorias', 'Imersões', 'Hubs', '🎖️ por mentoria', '🎖️ por imersões', '🎖️ por hubs', '🎖️ metas/extras', 'TOTAL 🎖️', 'Valor vendido (R$)']];
+  Object.keys(TEAMS).forEach(k => { const t = C.T[k]; placar.push([TEAMS[k].nome, t.mentoria, t.imersao, t.hub, t.medM, t.medI, t.medH, t.extra, t.total, t.valor]); });
   placar.push([]); placar.push(['Atualizado em', fmtBR(new Date().toISOString(), {dateStyle: 'short', timeStyle: 'medium'})]);
   const vendas = [['Data/Hora', 'Time', 'Vendedor', 'Cargo', 'Tipo', 'Qtd', 'Valor (R$)', 'Status', 'Lançado por', 'ID']];
   S.vendas.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(s => { const v = C.byId[s.vendedor_id]; if (v) vendas.push([fmtBR(s.criado_em, {dateStyle: 'short', timeStyle: 'short'}), TEAMS[v.time].nome, v.nome, v.cargo, TIPOS[s.tipo].nome, s.qtd, s.valor != null ? +s.valor : '', s.cancelada ? 'CANCELADA' : 'ok', s.lancado_por || '', s.id]); });
