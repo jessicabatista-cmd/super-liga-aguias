@@ -122,16 +122,6 @@ body.tv.showcursor{cursor:default}
 #evt .k{font-family:var(--head);font-weight:700;font-size:11rem;line-height:1;text-transform:uppercase;letter-spacing:-.01em;color:var(--evc,var(--yellow));text-shadow:0 0 4rem var(--evc,var(--yellow))}
 #evt .s{font-family:var(--head);font-size:3.6rem;text-transform:uppercase;margin-top:.6rem;letter-spacing:.04em}
 #evt .m{font-size:7rem;display:block;margin-bottom:-.6rem;animation:float 1.2s ease-in-out infinite}
-/* águia real sobrevoando a tela; depois a venda aparece */
-#flyer{position:absolute;left:0;top:0;z-index:58;pointer-events:none;will-change:transform;transform-origin:50% 50%}
-#flyer .eg3{position:relative;width:62rem;aspect-ratio:1200/948;filter:drop-shadow(0 2.2rem 2rem rgba(0,0,0,.65)) drop-shadow(0 0 2.2rem rgba(255,200,0,.3))}
-#flyer .eg3 img{position:absolute;inset:0;width:100%;height:100%;animation-duration:.66s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
-#flyer .eg3 .wl{transform-origin:46.7% 59%;animation-name:flapL}
-#flyer .eg3 .wr{transform-origin:57.5% 50.6%;animation-name:flapR}
-#flyer .eg3 .bd{animation-name:bobB}
-@keyframes flapL{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-15deg)}}
-@keyframes flapR{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(15deg)}}
-@keyframes bobB{0%,100%{transform:translateY(-1%)}50%{transform:translateY(1.2%)}}
 #evt .s .lbl{display:block;font-size:2rem;letter-spacing:.3em;color:var(--yellow);margin-bottom:.4rem}
 #evt .s .val{color:var(--yellow);font-weight:700;font-size:5.2rem;margin-left:1.2rem;text-shadow:0 0 2rem rgba(255,200,0,.6)}
 .flash{position:fixed;inset:0;background:var(--evc,var(--yellow));opacity:0;z-index:55;pointer-events:none}
@@ -239,7 +229,6 @@ details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-
   </footer>
   <div class="flash" id="flash"></div>
   <div id="evt"><span class="m" id="evm"></span><div class="k" id="evk"></div><div class="s" id="evs"></div></div>
-  <div id="flyer" class="hide"></div>
   <div id="final" class="hide"></div>
 </div>
 
@@ -403,31 +392,7 @@ function tone(f, t0, d, type, vol) {
   g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + t0 + d);
   o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + d + .02);
 }
-function sfxScreech() {
-  if (!soundOn || !AC) return;
-  const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
-  o.type = 'sawtooth'; o.frequency.setValueAtTime(2200, t); o.frequency.exponentialRampToValueAtTime(1500, t + .5); o.frequency.exponentialRampToValueAtTime(2600, t + .9);
-  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.12, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + 1.0);
-  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + 1.05);
-}
 function fmtMoney(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2}); }
-// águia real (foto recortada) cruza a tela de ponta a ponta; chama onMid quando passa pelo meio
-function flyEagle(ms, onMid, done) {
-  const fl = $('#flyer');
-  fl.innerHTML = '<div class="eg3"><img class="bd" src="assets/body.png" alt=""><img class="wl" src="assets/wingL.png" alt=""><img class="wr" src="assets/wingR.png" alt=""></div>';
-  fl.classList.remove('hide');
-  const W = STAGE.w, H = STAGE.h, w = 62 * 16, h = w * 0.79;
-  const a = fl.animate([
-    {transform: `translate(${W + 60}px, ${H * .34}px) scale(.42) rotate(-7deg)`, offset: 0, easing: 'ease-in-out'},
-    {transform: `translate(${W * .5 - w / 2}px, ${H * .06}px) scale(1.02) rotate(1deg)`, offset: .5, easing: 'ease-in-out'},
-    {transform: `translate(${-w - 80}px, ${H * .26}px) scale(1.28) rotate(8deg)`, offset: 1}
-  ], {duration: ms, easing: 'linear'});
-  let fin = false, mid = false;
-  const end = () => { if (fin) return; fin = true; fl.classList.add('hide'); done(); };
-  a.onfinish = end;
-  setTimeout(() => { if (!mid) { mid = true; onMid(); } }, ms * .52);
-  setTimeout(end, ms + 1500); // segurança: aba em segundo plano pausa a animação e a fila travaria
-}
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
 function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
 
@@ -655,19 +620,16 @@ function runQueue() {
   const big = e.kind !== 'sale';
   root.style.setProperty('--evc', col);
   $('#flash').style.setProperty('--evc', col);
-  if (!big) { // venda: 1) águia sobrevoa a tela  2) ao passar pelo meio, o cartão da venda aparece
-    const eagleMs = TV.queue.length ? 4200 : 6200, cardMs = TV.queue.length ? 3200 : 5200;
-    sfxScreech();
-    flyEagle(eagleMs, () => {
-      $('#evm').textContent = '💰';
-      $('#evk').textContent = e.who;
-      $('#evs').innerHTML = `<span class="lbl">Nova venda · ${esc(TEAMS[e.time].nome)}</span>${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}`;
-      root.classList.add('on');
-      const fl2 = $('#flash'); fl2.classList.remove('on'); void fl2.offsetWidth; fl2.classList.add('on');
-      const el2 = $('#t-' + e.time); el2.classList.remove('bump'); void el2.offsetWidth; el2.classList.add('bump');
-      sfxSale(); confetti([col, '#ffc800', '#ffffff'], 90);
-      setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, cardMs);
-    }, () => {});
+  if (!big) { // venda: o cartão aparece direto no centro da tela
+    const cardMs = TV.queue.length ? 3200 : 5200;
+    $('#evm').textContent = '💰';
+    $('#evk').textContent = e.who;
+    $('#evs').innerHTML = `<span class="lbl">Nova venda · ${esc(TEAMS[e.time].nome)}</span>${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}`;
+    root.classList.add('on');
+    const fl2 = $('#flash'); fl2.classList.remove('on'); void fl2.offsetWidth; fl2.classList.add('on');
+    const el2 = $('#t-' + e.time); el2.classList.remove('bump'); void el2.offsetWidth; el2.classList.add('bump');
+    sfxSale(); confetti([col, '#ffc800', '#ffffff'], 90);
+    setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, cardMs);
     return;
   }
   $('#evm').textContent = big ? '🎖️' : '💰';
