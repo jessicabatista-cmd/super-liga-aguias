@@ -589,8 +589,7 @@ function renderTV(initial) {
     el.innerHTML = `
       <div class="tag"><span>${TEAMS[k].nome} ${TEAMS[k].emoji}</span>${t.total === other.total ? (t.total ? '<span class="crown">EMPATE</span>' : '') : lead ? '<span class="crown">👑 LIDERANDO</span>' : ''}</div>
       <div class="leader"><div class="photo">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
-        <div><small>Líder do time</small><b>${lider ? esc(lider.nome.split(' ')[0]) + (lider.apelido ? ' “' + esc(lider.apelido) + '” ' + esc(lider.nome.split(' ').slice(1).join(' ')) : ' ' + esc(lider.nome.split(' ').slice(1).join(' '))) : ''}</b></div>
-        <div class="vsum"><small>Total vendido</small><b>${fmtMoney(t.valor)}</b></div></div>
+        <div><small>Líder do time</small><b>${lider ? esc(lider.nome.split(' ')[0]) + (lider.apelido ? ' “' + esc(lider.apelido) + '” ' + esc(lider.nome.split(' ').slice(1).join(' ')) : ' ' + esc(lider.nome.split(' ').slice(1).join(' '))) : ''}</b></div></div>
       <div class="score"><span class="num" data-v="${old ?? 0}">${old ?? 0}</span><span class="medal">🎖️</span></div>
       <div class="chips">
         <div class="chip"><small>Mentorias</small><b>${t.mentoria} <i>= ${t.medM}🎖️</i></b></div>
