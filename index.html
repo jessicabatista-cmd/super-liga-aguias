@@ -647,13 +647,13 @@ async function initAdm() {
 }
 function loginView(msg) {
   $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Painel ADM · Super Liga Águias</h2>
-    <p class="help" style="margin:.4rem 0 1rem">Entre com seu e-mail Google da Pronix.</p>
+    <p class="help" style="margin:.4rem 0 1rem">Entre com seu e-mail Google autorizado (Pronix ou VDV Group).</p>
     <button class="btn" id="go" style="width:100%;font-size:1.1rem;padding:.9rem">Entrar com Google</button>
     <p style="color:var(--err);min-height:1.4em;margin:.8rem 0 0">${esc(msg || '')}</p></div>`;
   $('#go').onclick = async () => {
     $('#go').disabled = true; $('#go').textContent = 'Abrindo o Google…';
     try { sessionStorage.setItem('liga_admin', '1'); } catch (e) {}
-    const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + '/', queryParams: {hd: 'pronix.com.br', prompt: 'select_account'}}});
+    const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + '/', queryParams: {prompt: 'select_account'}}});
     if (error) loginView('Erro: ' + error.message);
   };
 }
