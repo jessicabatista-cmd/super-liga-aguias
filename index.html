@@ -794,7 +794,7 @@ function paneVenda(C) {
     <div class="card"><h2>2 · O que vendeu?</h2>
       <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}<small>${t.reg}</small></button>`).join('')}</div>
       <div class="row r3" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
-      <div><label>Valor total da venda (R$) *</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
+      <div><label>Valor total da venda (R$) (opcional)</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
       <div><label>Data e hora * <a href="#" id="agora" style="text-transform:none;letter-spacing:0;color:var(--yellow);margin-left:.6rem">preencher com agora</a></label><input id="dt" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="dd/mm/aaaa hh:mm" value="${esc(A.data || '')}"></div></div>
       <div class="prev" id="prev">${previewVenda(C)}</div>
       <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" disabled>Registrar venda</button>
@@ -815,7 +815,7 @@ function paneVenda(C) {
     const dataIso = parseDataHora(A.data);
     $('#reg').disabled = true;
     try {
-      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: parseMoney(A.valor)});
+      await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: (A.valor || '').trim() ? parseMoney(A.valor) : null});
       const v = C.byId[A.sel];
       toast('✅ ' + v.nome.split(' ')[0] + ': ' + q + '× ' + TIPOS[A.tipo].nome + ' registrada!');
       A.tipo = null; A.qtd = 1; A.data = ''; A.valor = '';
@@ -824,12 +824,12 @@ function paneVenda(C) {
   };
   bindRowActions();
 }
-// campos obrigatórios do lançamento: vendedor, produto, valor (> 0) e data/hora completas
+// obrigatórios: vendedor, produto e data/hora completas; valor é opcional (se preenchido, precisa ser > 0)
 function faltaVenda() {
   const f = [];
   if (!A.sel) f.push('vendedor');
   if (!A.tipo) f.push('produto');
-  const v = parseMoney(A.valor); if (v == null || v <= 0) f.push('valor da venda');
+  if ((A.valor || '').trim()) { const v = parseMoney(A.valor); if (v == null || v <= 0) f.push('valor válido (ou deixe em branco)'); }
   if (!/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(A.data || '') || !parseDataHora(A.data)) f.push('data e hora (dd/mm/aaaa hh:mm)');
   return f;
 }
