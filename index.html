@@ -396,6 +396,50 @@ function tone(f, t0, d, type, vol) {
   o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + d + .02);
 }
 function fmtMoney(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2}); }
+/* ---- música da venda: jingle de comemoração (sintetizado, sem direitos autorais) ---- */
+function noiseHit(t0, d, vol, hp) {
+  if (!soundOn || !AC) return;
+  const n = Math.max(1, Math.floor(AC.sampleRate * d)), buf = AC.createBuffer(1, n, AC.sampleRate), ch = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) ch[i] = Math.random() * 2 - 1;
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t = AC.currentTime + t0;
+  s.buffer = buf; f.type = 'highpass'; f.frequency.value = hp;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + d + .02);
+}
+function kick(t0) {
+  if (!soundOn || !AC) return;
+  const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+  o.type = 'sine'; o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
+  g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(.0001, t + .22);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + .25);
+}
+function sfxVendaSynth() {
+  const B = 60 / 128, E = B / 2; // 128 bpm, colcheia
+  // melodia: [frequência, tempo (colcheias), duração (colcheias)]
+  const mel = [[523.25,0,1],[659.25,1,1],[783.99,2,1],[1046.5,3,1],[783.99,4,1],[1046.5,5,1],[1318.5,6,1],[1046.5,7,1],
+               [880,8,1],[1046.5,9,1],[1174.7,10,1],[1318.5,11,1],[1568,12,2],[1318.5,14,1],[1568,15,1],[2093,16,5]];
+  mel.forEach(([f, s, d]) => { tone(f, s * E, d * E * .95, 'triangle', .2); tone(f * 2, s * E, d * E * .5, 'sine', .05); });
+  // baixo
+  [[130.8,0],[130.8,2],[98,4],[98,6],[110,8],[110,10],[98,12],[130.8,14],[130.8,16]].forEach(([f, s]) => tone(f, s * E, E * 1.8, 'sawtooth', .09));
+  // bateria: bumbo nos tempos, caixa nos contratempos, chimbal nas colcheias
+  for (let i = 0; i < 16; i += 2) kick(i * E);
+  [4, 12].forEach(s => noiseHit(s * E, .14, .22, 1500));
+  for (let i = 0; i < 16; i++) noiseHit(i * E, .045, .07, 7000);
+  // acorde final
+  [523.25, 659.25, 783.99, 1046.5].forEach(f => tone(f, 16 * E, 1.4, 'sawtooth', .07));
+  kick(16 * E); noiseHit(16 * E, .5, .12, 3000);
+}
+let vendaAudio = null, customMusic = null;
+function sfxVenda(ms) {
+  if (!soundOn || !AC) return;
+  try { if (vendaAudio) { vendaAudio.pause(); vendaAudio = null; } } catch (e) {}
+  // se existir assets/musica-venda.mp3, toca ele (a música da empresa); senão toca o jingle
+  if (customMusic !== false) {
+    const au = new Audio('assets/musica-venda.mp3'); au.volume = .9; vendaAudio = au;
+    au.play().then(() => { customMusic = true; setTimeout(() => { if (vendaAudio === au) { let v = .9; const fd = setInterval(() => { v -= .1; if (v <= 0) { clearInterval(fd); au.pause(); } else au.volume = v; }, 80); } }, Math.max(1000, ms - 600)); })
+      .catch(() => { customMusic = false; sfxVendaSynth(); });
+  } else sfxVendaSynth();
+}
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
 function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
 
@@ -473,6 +517,7 @@ function initTV() {
   // a TV se atualiza sozinha quando sai uma versão nova do site (sem precisar apertar F5)
   const pageHash = async () => { const t = await (await fetch(location.pathname, {cache: 'no-store'})).text(); let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return h; };
   pageHash().then(h => { TV.ver = h; }).catch(() => {});
+  fetch('assets/musica-venda.mp3', {method: 'HEAD'}).then(r => { if (!r.ok) customMusic = false; }).catch(() => { customMusic = false; }); // sem arquivo próprio: usa o jingle
   setInterval(async () => { try { const h = await pageHash(); if (TV.ver != null && h !== TV.ver && !TV.busy && !TV.queue.length) location.reload(); } catch (e) {} }, 120000);
   loadAll(true).then(() => renderTV(true)).catch(() => $('#offline').classList.remove('hide'));
 }
@@ -635,7 +680,7 @@ function runQueue() {
     root.classList.add('on');
     const fl2 = $('#flash'); fl2.classList.remove('on'); void fl2.offsetWidth; fl2.classList.add('on');
     const el2 = $('#t-' + e.time); el2.classList.remove('bump'); void el2.offsetWidth; el2.classList.add('bump');
-    sfxSale(); confetti([col, '#ffc800', '#ffffff'], 90);
+    sfxVenda(cardMs); confetti([col, '#ffc800', '#ffffff'], 90);
     setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, cardMs);
     return;
   }
