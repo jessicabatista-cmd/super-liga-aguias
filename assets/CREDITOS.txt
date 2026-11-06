@@ -1,6 +1,6 @@
 Créditos de imagens — Super Liga Águias
 
-aguia-real.png
+body.png, wingL.png, wingR.png (águia animada: camadas feitas a partir da foto abaixo)
   Foto: "Bald Eagle over Homer" — Andy Morffew (Itchen Abbas, Hampshire, UK)
   Licença: CC BY 2.0 — https://creativecommons.org/licenses/by/2.0
   Origem: https://commons.wikimedia.org/wiki/File:Bald_Eagle_over_Homer_(25225263373).jpg

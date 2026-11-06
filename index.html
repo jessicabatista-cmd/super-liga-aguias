@@ -124,7 +124,14 @@ body.tv.showcursor{cursor:default}
 #evt .m{font-size:7rem;display:block;margin-bottom:-.6rem;animation:float 1.2s ease-in-out infinite}
 /* águia real sobrevoando a tela; depois a venda aparece */
 #flyer{position:absolute;left:0;top:0;z-index:58;pointer-events:none;will-change:transform;transform-origin:50% 50%}
-#flyer img{display:block;width:62rem;height:auto;filter:drop-shadow(0 2.2rem 2rem rgba(0,0,0,.65)) drop-shadow(0 0 2.2rem rgba(255,200,0,.3))}
+#flyer .eg3{position:relative;width:62rem;aspect-ratio:1200/948;filter:drop-shadow(0 2.2rem 2rem rgba(0,0,0,.65)) drop-shadow(0 0 2.2rem rgba(255,200,0,.3))}
+#flyer .eg3 img{position:absolute;inset:0;width:100%;height:100%;animation-duration:.66s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+#flyer .eg3 .wl{transform-origin:46.7% 59%;animation-name:flapL}
+#flyer .eg3 .wr{transform-origin:57.5% 50.6%;animation-name:flapR}
+#flyer .eg3 .bd{animation-name:bobB}
+@keyframes flapL{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-15deg)}}
+@keyframes flapR{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(15deg)}}
+@keyframes bobB{0%,100%{transform:translateY(-1%)}50%{transform:translateY(1.2%)}}
 #evt .s .lbl{display:block;font-size:2rem;letter-spacing:.3em;color:var(--yellow);margin-bottom:.4rem}
 #evt .s .val{color:var(--yellow);font-weight:700;font-size:5.2rem;margin-left:1.2rem;text-shadow:0 0 2rem rgba(255,200,0,.6)}
 .flash{position:fixed;inset:0;background:var(--evc,var(--yellow));opacity:0;z-index:55;pointer-events:none}
@@ -407,7 +414,7 @@ function fmtMoney(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimum
 // águia real (foto recortada) cruza a tela de ponta a ponta; chama onMid quando passa pelo meio
 function flyEagle(ms, onMid, done) {
   const fl = $('#flyer');
-  fl.innerHTML = '<img src="assets/aguia-real.png" alt="">';
+  fl.innerHTML = '<div class="eg3"><img class="bd" src="assets/body.png" alt=""><img class="wl" src="assets/wingL.png" alt=""><img class="wr" src="assets/wingR.png" alt=""></div>';
   fl.classList.remove('hide');
   const W = STAGE.w, H = STAGE.h, w = 62 * 16, h = w * 0.79;
   const a = fl.animate([
