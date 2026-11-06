@@ -572,10 +572,10 @@ function renderBottom(SS) {
   S.vendas.filter(s => !s.cancelada && byId[s.vendedor_id]).slice(0, 10).forEach(s => evs.push({t: s.criado_em, h: `<span class="ev"><span class="dot ${byId[s.vendedor_id].time === 'dinossauro' ? 'd' : 's'}"></span>💰 ${esc(byId[s.vendedor_id].nome.split(' ')[0])} fechou ${(s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome}<small>${ago(s.criado_em)}</small></span>`}));
   S.med.filter(m => !m.removida).slice(0, 6).forEach(m => { const v = m.vendedor_id ? byId[m.vendedor_id] : null; evs.push({t: m.criado_em, h: `<span class="ev"><span class="dot ${m.time === 'dinossauro' ? 'd' : 's'}"></span>🎖️ ${esc(v ? v.nome.split(' ')[0] : TEAMS[m.time].nome)} — ${m.motivo === 'meta' ? 'meta da semana batida' : esc(m.obs || 'medalha especial')}<small>${ago(m.criado_em)}</small></span>`}); });
   evs.sort((a, b) => new Date(b.t) - new Date(a.t));
-  const top = Object.values(SS).filter(s => s.v.ativo).sort((a, b) => b.pts - a.pts || b.total - a.total).slice(0, 3);
+  const top = Object.values(SS).filter(s => s.v.ativo && (s.pts > 0 || s.total > 0)).sort((a, b) => b.pts - a.pts || b.total - a.total).slice(0, 3);
   TV.sl = [
     {lab: 'Últimas jogadas', html: evs.slice(0, 4).map(e => e.h).join('') || '<span class="ev">Nenhuma venda ainda — bora abrir o placar! 🚀</span>'},
-    {lab: 'Corrida do MVP', html: top.map((s, i) => `<span class="mv">${['🥇', '🥈', '🥉'][i]} <span class="dot ${s.v.time === 'dinossauro' ? 'd' : 's'}"></span>${esc(s.v.nome.split(' ')[0])} <b>${s.pts}</b>🎖️ <small style="opacity:.6;font-size:1.1rem">· ${s.total} vendas</small></span>`).join('')}
+    {lab: 'Corrida do MVP', html: !top.length ? '<span class="ev">Quem vai abrir a corrida do MVP? 🏆 Ninguém pontuou ainda!</span>' : top.map((s, i) => `<span class="mv">${['🥇', '🥈', '🥉'][i]} <span class="dot ${s.v.time === 'dinossauro' ? 'd' : 's'}"></span>${esc(s.v.nome.split(' ')[0])} <b>${s.pts}</b>🎖️ <small style="opacity:.6;font-size:1.1rem">· ${s.total} vendas</small></span>`).join('')}
   ];
   const cur = TV.slide % 2;
   $('#sl' + cur).innerHTML = TV.sl[cur].html;
