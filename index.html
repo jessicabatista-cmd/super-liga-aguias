@@ -948,6 +948,8 @@ function buildPayload() {
   return {placar, vendas, medalhas};
 }
 async function syncSheet(manual) {
+  // busca a config atual a cada envio: a sessão pode ter sido aberta antes de a URL da planilha existir
+  try { A.adminCfg = await rpc('liga_get_admin_config', {p_pin: A.pin}); } catch (e) {}
   const url = A.adminCfg && A.adminCfg.webhook_url;
   if (!url) { if (manual) toast('Configure a URL da planilha em Config', true); return; }
   try {
