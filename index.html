@@ -796,21 +796,25 @@ function paneVenda(C) {
     <div class="card"><h2>2 · O que vendeu?</h2>
       <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}<small>${t.reg}</small></button>`).join('')}</div>
       <div class="row r3" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
-      <div><label>Valor total da venda (R$)</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
-      <div><label>Data e hora (vazio = agora)</label><input id="dt" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="dd/mm/aaaa hh:mm" value="${esc(A.data || '')}"></div></div>
+      <div><label>Valor total da venda (R$) *</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
+      <div><label>Data e hora * <a href="#" id="agora" style="text-transform:none;letter-spacing:0;color:var(--yellow);margin-left:.6rem">preencher com agora</a></label><input id="dt" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="dd/mm/aaaa hh:mm" value="${esc(A.data || '')}"></div></div>
       <div class="prev" id="prev">${previewVenda(C)}</div>
-      <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" ${A.sel && A.tipo ? '' : 'disabled'}>Registrar venda</button>
+      <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" disabled>Registrar venda</button>
+      <div class="help" id="falta" style="margin-top:.5rem;color:var(--yellow)"></div>
       <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
     <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
   $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
   $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
   $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
-  $('#dt').oninput = e => { A.data = maskDataHora(e.target.value); e.target.value = A.data; };
-  $('#vl').oninput = e => { A.valor = e.target.value; $('#prev').innerHTML = previewVenda(C); };
+  $('#dt').oninput = e => { A.data = maskDataHora(e.target.value); e.target.value = A.data; refreshReg(); };
+  $('#vl').oninput = e => { A.valor = e.target.value; $('#prev').innerHTML = previewVenda(C); refreshReg(); };
+  $('#agora').onclick = e => { e.preventDefault(); A.data = agoraBR(); $('#dt').value = A.data; refreshReg(); };
+  refreshReg();
   $('#reg').onclick = async () => {
     const q = Math.max(1, parseInt(A.qtd) || 1);
-    const dataIso = A.data ? parseDataHora(A.data) : null;
-    if (A.data && !dataIso) { toast('Data/hora inválida. Use dd/mm/aaaa hh:mm (ou deixe vazio para agora).', true); return; }
+    const falta = faltaVenda();
+    if (falta.length) { toast('Preencha: ' + falta.join(', ') + '.', true); return; }
+    const dataIso = parseDataHora(A.data);
     $('#reg').disabled = true;
     try {
       await rpc('liga_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: parseMoney(A.valor)});
@@ -822,6 +826,21 @@ function paneVenda(C) {
   };
   bindRowActions();
 }
+// campos obrigatórios do lançamento: vendedor, produto, valor (> 0) e data/hora completas
+function faltaVenda() {
+  const f = [];
+  if (!A.sel) f.push('vendedor');
+  if (!A.tipo) f.push('produto');
+  const v = parseMoney(A.valor); if (v == null || v <= 0) f.push('valor da venda');
+  if (!/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(A.data || '') || !parseDataHora(A.data)) f.push('data e hora (dd/mm/aaaa hh:mm)');
+  return f;
+}
+function refreshReg() {
+  const f = faltaVenda(), b = $('#reg'), m = $('#falta');
+  if (b) b.disabled = f.length > 0;
+  if (m) m.textContent = f.length ? 'Falta preencher: ' + f.join(', ') + '.' : '';
+}
+function agoraBR() { const n = new Date().toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo', hour12: false}); return n.slice(8, 10) + '/' + n.slice(5, 7) + '/' + n.slice(0, 4) + ' ' + n.slice(11, 16); }
 // digita só números: 061120261430 vira 06/11/2026 14:30 (as barras, o espaço e os dois pontos entram sozinhos)
 function maskDataHora(v) {
   const d = String(v || '').replace(/\D/g, '').slice(0, 12);
@@ -851,13 +870,13 @@ function parseMoney(t) {
   return isFinite(n) && n >= 0 ? n : null;
 }
 function lastRows(C, n) {
-  const rows = histRows(C).slice(0, n);
-  return rows.map(r => r.html).join('') || '<div class="help">Nenhum lançamento ainda.</div>';
+  const all = histRows(C), rows = all.filter(r => !r.off).slice(0, n), canc = all.filter(r => r.off).length;
+  return (rows.map(r => r.html).join('') || '<div class="help">Nenhum lançamento ativo.</div>') + (canc ? `<div class="help" style="margin-top:.4rem">${canc} cancelada(s) — veja no Histórico.</div>` : '');
 }
 function histRows(C) {
   const rows = [];
-  S.vendas.forEach(s => { const v = C.byId[s.vendedor_id]; if (!v) return; rows.push({t: s.criado_em, time: v.time, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${TEAMS[v.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.valor ? ' · ' + fmtMoney(+s.valor) : ''}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`}); });
-  S.med.forEach(m => { const v = m.vendedor_id ? C.byId[m.vendedor_id] : null; rows.push({t: m.criado_em, time: m.time, html: `<div class="li ${m.removida ? 'off' : ''}"><span class="t">${fmtBR(m.criado_em)}</span><span class="dot" style="background:${TEAMS[m.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">🎖️ <b>${esc(v ? v.nome : TEAMS[m.time].nome)}</b> · ${m.motivo === 'meta' ? 'meta da semana ' + (m.semana || '') : 'manual'}${m.obs ? ' — ' + esc(m.obs) : ''}${m.lancado_por ? ` <small style="opacity:.55">· por ${esc(m.lancado_por.split(' ')[0])}</small>` : ''}</span>${m.removida ? '<span class="badge" style="background:var(--err)">removida</span>' : ''}<button class="btn sm ${m.removida ? 'sec' : 'red'}" data-cm="${m.id}" data-st="${m.removida ? 0 : 1}">${m.removida ? 'Restaurar' : 'Remover'}</button></div>`}); });
+  S.vendas.forEach(s => { const v = C.byId[s.vendedor_id]; if (!v) return; rows.push({t: s.criado_em, time: v.time, off: s.cancelada, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${TEAMS[v.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.valor ? ' · ' + fmtMoney(+s.valor) : ''}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`}); });
+  S.med.forEach(m => { const v = m.vendedor_id ? C.byId[m.vendedor_id] : null; rows.push({t: m.criado_em, time: m.time, off: m.removida, html: `<div class="li ${m.removida ? 'off' : ''}"><span class="t">${fmtBR(m.criado_em)}</span><span class="dot" style="background:${TEAMS[m.time].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">🎖️ <b>${esc(v ? v.nome : TEAMS[m.time].nome)}</b> · ${m.motivo === 'meta' ? 'meta da semana ' + (m.semana || '') : 'manual'}${m.obs ? ' — ' + esc(m.obs) : ''}${m.lancado_por ? ` <small style="opacity:.55">· por ${esc(m.lancado_por.split(' ')[0])}</small>` : ''}</span>${m.removida ? '<span class="badge" style="background:var(--err)">removida</span>' : ''}<button class="btn sm ${m.removida ? 'sec' : 'red'}" data-cm="${m.id}" data-st="${m.removida ? 0 : 1}">${m.removida ? 'Restaurar' : 'Remover'}</button></div>`}); });
   return rows.sort((a, b) => new Date(b.t) - new Date(a.t));
 }
 function bindRowActions() {
