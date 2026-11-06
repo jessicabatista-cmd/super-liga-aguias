@@ -47,9 +47,9 @@ body.tv.showcursor{cursor:default}
 .clock .hms{font-family:var(--head);font-weight:500;font-size:1.4rem;letter-spacing:.14em;margin-top:.2rem;opacity:.8}
 
 .arena{flex:1;min-height:0;display:grid;grid-template-columns:1fr 6rem 1fr;align-items:stretch;gap:0}
-.vs{display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:700;font-size:3.4rem;color:var(--yellow);text-shadow:0 0 1.4rem rgba(255,200,0,.7)}
-.vs span{transform:skewX(-15deg);animation:vs 1.6s ease-in-out infinite}
-@keyframes vs{50%{transform:skewX(-15deg) scale(1.25)}}
+.vs{display:flex;align-items:flex-start;padding-top:19.75rem;justify-content:center;font-family:var(--head);font-weight:700;font-size:3.4rem;color:var(--yellow);text-shadow:0 0 1.4rem rgba(255,200,0,.7)}
+.vs span{transform:translateY(-50%) skewX(-15deg);animation:vs 1.6s ease-in-out infinite}
+@keyframes vs{50%{transform:translateY(-50%) skewX(-15deg) scale(1.25)}}
 
 .team{--c:var(--dino);--cd:var(--dino-d);position:relative;display:flex;flex-direction:column;min-height:0;padding:1.1rem 1.6rem 1.1rem;
   background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,#17130d) 0%,rgba(23,19,13,.92) 70%);
