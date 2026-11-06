@@ -433,7 +433,10 @@ function flyEagle(e, ms, done) {
   fl.classList.remove('hide');
   const w = fl.offsetWidth;
   const a = fl.animate([{transform: `translateX(${STAGE.w + 40}px)`}, {transform: `translateX(${-w - 40}px)`}], {duration: ms, easing: 'linear'});
-  a.onfinish = () => { fl.classList.add('hide'); done(); };
+  let fin = false;
+  const end = () => { if (fin) return; fin = true; fl.classList.add('hide'); done(); };
+  a.onfinish = end;
+  setTimeout(end, ms + 1500); // segurança: aba em segundo plano pausa a animação e a fila travaria
 }
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
 function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
@@ -505,6 +508,10 @@ function initTV() {
   setInterval(async () => { try { await loadAll(false); $('#offline').classList.add('hide'); renderTV(false); } catch (e) { $('#offline').classList.remove('hide'); } }, POLL_MS);
   setInterval(async () => { try { await loadAll(true); renderTV(false); } catch (e) {} }, 60000);
   setInterval(rotateBottom, 9000);
+  // a TV se atualiza sozinha quando sai uma versão nova do site (sem precisar apertar F5)
+  const pageHash = async () => { const t = await (await fetch(location.pathname, {cache: 'no-store'})).text(); let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return h; };
+  pageHash().then(h => { TV.ver = h; }).catch(() => {});
+  setInterval(async () => { try { const h = await pageHash(); if (TV.ver != null && h !== TV.ver && !TV.busy && !TV.queue.length) location.reload(); } catch (e) {} }, 120000);
   loadAll(true).then(() => renderTV(true)).catch(() => $('#offline').classList.remove('hide'));
 }
 
@@ -601,7 +608,7 @@ function renderTV(initial) {
 
   renderBottom(SS);
   tick();
-  if (!initial) ev.forEach(e => TV.queue.push(e));
+  if (!initial) ev.forEach(e => { e.t = Date.now(); TV.queue.push(e); });
   runQueue();
   checkFinal(T);
 }
@@ -645,8 +652,12 @@ function rotateBottom() {
   TV.slide = nxt;
 }
 
+document.addEventListener('visibilitychange', () => { if (!document.hidden) runQueue(); });
 function runQueue() {
   if (TV.busy || !TV.queue.length) return;
+  if (document.hidden) return; // aba em segundo plano: espera voltar para mostrar a animação
+  TV.queue = TV.queue.filter(x => Date.now() - (x.t || 0) < 10 * 60 * 1000); // descarta eventos muito antigos
+  if (!TV.queue.length) return;
   TV.busy = true;
   const e = TV.queue.shift();
   const col = TEAMS[e.time].cor;
