@@ -129,7 +129,8 @@ img.emoji{height:1em;width:1em;margin:0 .06em;vertical-align:-.12em;display:inli
 .flash.on{animation:fl .9s ease-out}
 @keyframes fl{0%{opacity:.55}100%{opacity:0}}
 #fsbtn{display:none;position:fixed;right:1rem;bottom:1rem;z-index:71;font:600 1rem var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--yellow);color:var(--black);border:none;padding:.5rem 1rem;cursor:pointer}
-body.showcursor #fsbtn{display:block}
+body.showcursor #fsbtn,body.showcursor #admbtn{display:block}
+#admbtn{display:none;position:fixed;right:11rem;bottom:1rem;z-index:71;font:600 1rem var(--body);letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.7);color:var(--yellow);border:1px solid var(--yellow);padding:.5rem 1rem;text-decoration:none;cursor:pointer}
 #soundhint{display:none !important;position:fixed;right:1rem;top:.6rem;z-index:70;font-size:.95rem;background:rgba(0,0,0,.6);padding:.3rem .8rem;border:1px solid var(--yellow);color:var(--yellow);cursor:pointer;letter-spacing:.1em;text-transform:uppercase}
 #offline{position:fixed;left:1rem;top:.6rem;z-index:70;font-size:.95rem;background:var(--err);padding:.3rem .8rem;text-transform:uppercase;letter-spacing:.1em}
 #final{position:fixed;inset:0;z-index:65;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
@@ -207,6 +208,7 @@ details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-
   <canvas id="fx"></canvas>
   <div id="soundhint">🔊 clique para ativar o som e a tela cheia</div>
   <button id="fsbtn" title="Tela cheia (tecla F)">⛶ Tela cheia</button>
+  <a id="admbtn" href="index.html?admin=1" title="Painel ADM">⚙ Painel ADM</a>
   <div id="offline" class="hide">sem conexão — tentando de novo…</div>
   <header class="top">
     <div class="brand">
