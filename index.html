@@ -623,7 +623,7 @@ function renderTV(initial) {
   $('#tugBt').textContent = T.senhora.total + ' ' + TEAMS.senhora.emoji;
 
   // período
-  $('#periodo').textContent = 'Pronix · Time Comercial · ' + fmtBR(S.cfg.inicio, {day: '2-digit', month: '2-digit'}) + ' a ' + fmtBR(S.cfg.fim, {day: '2-digit', month: '2-digit'}) + ' · ' + (S.cfg.semanas[wk] ? S.cfg.semanas[wk].nome : '');
+  { const sw = S.cfg.semanas[wk], f = d => fmtBR(d, {day: '2-digit', month: '2-digit'}); $('#periodo').textContent = 'Pronix · Time Comercial · ' + (sw ? f(sw.inicio) + ' a ' + f(sw.fim) + ' · ' + sw.nome : f(S.cfg.inicio) + ' a ' + f(S.cfg.fim)); }
 
   renderBottom(SS);
   tick();
