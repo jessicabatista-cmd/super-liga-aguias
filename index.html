@@ -988,7 +988,7 @@ function paneCfg(C) {
       <h3>Semanas comerciais (usadas para a meta individual)</h3>
       <div id="wks">${S.cfg.semanas.map((w, i) => `<div class="row r3 wk" style="margin-bottom:.4rem"><input class="wn" value="${esc(w.nome)}"><input class="wi" type="datetime-local" value="${toLocalInput(w.inicio)}"><input class="wf" type="datetime-local" value="${toLocalInput(w.fim)}"></div>`).join('')}</div>
       <button class="btn sm sec" id="addw">+ semana</button> <button class="btn sm sec" id="remw">− última semana</button>
-      <p class="help" style="margin-top:.5rem">Padrão assumido: Semana 1 = 06 a 12/11 e Semana 2 = 13 a 17/11. Ajuste se a semana comercial for diferente.</p></div>
+      <p class="help" style="margin-top:.5rem">Padrão: Semana 1 = 04 a 10/11 e Semana 2 = 11 a 17/11. Ajuste se a semana comercial for diferente.</p></div>
     <div class="card"><h2>Planilha online (Google Sheets)</h2>
       <label>URL do Apps Script (termina em /exec)</label><input id="wh" value="${esc(cf.webhook_url || '')}" placeholder="https://script.google.com/macros/s/.../exec">
       <p class="help" style="margin:.5rem 0">Cada venda/medalha lançada reescreve as abas <b>Placar</b>, <b>Vendas</b> e <b>Medalhas</b> da planilha.</p>
