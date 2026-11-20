@@ -65,7 +65,7 @@ body.tv.showcursor{cursor:default}
   box-shadow:inset 0 0 3.4rem color-mix(in srgb,var(--c) 12%,transparent)}
 .sq.bump{animation:bump .9s ease-out}
 @keyframes bump{20%{transform:scale(1.025);filter:brightness(1.5)}100%{transform:none}}
-.sq .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:.5rem}
+.sq .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:.5rem;height:6.2rem;flex:none}
 .sq .hd h2{font-family:var(--head);font-weight:700;font-size:3rem;line-height:1;text-transform:uppercase;color:var(--c);letter-spacing:.02em}
 .sq .hd small{display:block;font-size:1rem;letter-spacing:.2em;text-transform:uppercase;opacity:.75;margin-top:.3rem;color:var(--bone)}
 .sq .hd .tot{font-family:var(--head);font-weight:700;font-size:3.2rem;line-height:1;text-align:right;white-space:nowrap}
@@ -73,7 +73,7 @@ body.tv.showcursor{cursor:default}
 .sq .sqbar{height:.6rem;background:rgba(255,255,255,.14);margin-bottom:.7rem}
 .sq .sqbar i{display:block;height:100%;background:var(--c);transition:width 1s}
 .rows{flex:1;min-height:0;display:flex;flex-direction:column;gap:.45rem}
-.rw{flex:1;min-height:0;max-height:7.6rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.9rem;background:rgba(255,255,255,.05);padding:.25rem .9rem .25rem .3rem}
+.rw{flex:0 1 6.2rem;min-height:0;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.9rem;background:rgba(255,255,255,.05);padding:.25rem .9rem .25rem .3rem}
 .rw .av{height:100%;max-height:5.6rem;min-height:2.4rem;aspect-ratio:1;background:var(--c);padding:.14rem;clip-path:polygon(.6rem 0,100% 0,100% calc(100% - .6rem),calc(100% - .6rem) 100%,0 100%,0 .6rem)}
 .rw .av>div,.rw .av>img{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;background:#17130d;color:var(--c);font-family:var(--head);font-weight:700;font-size:2rem;clip-path:polygon(.5rem 0,100% 0,100% calc(100% - .5rem),calc(100% - .5rem) 100%,0 100%,0 .5rem)}
 .rw .mid{min-width:0}
@@ -245,15 +245,11 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 #evt .k{color:var(--evc,var(--bone))}
 #evt .s .lbl{color:var(--evc,var(--yellow))}
 /* Harpias = squad elite: coluna maior, foto do squad de fundo e destaque dourado */
-.squads{grid-template-columns:1fr 1.15fr 1fr 1fr}
+.squads{grid-template-columns:repeat(4,1fr)}
 #sq-H{background:linear-gradient(180deg,rgba(8,8,8,.82) 0%,rgba(8,8,8,.5) 26%,rgba(8,8,8,.58) 62%,rgba(8,8,8,.86) 100%),url(assets/harpias.jpg) 50% 40%/cover no-repeat;
   border:2px solid rgba(255,200,0,.65);border-top:.4rem solid var(--yellow);box-shadow:0 0 3rem rgba(255,200,0,.25),inset 0 0 5rem rgba(0,0,0,.35)}
-#sq-H .hd h2{font-size:3.2rem;text-shadow:0 .1rem .8rem rgba(0,0,0,.9)}
 #sq-H .hd small{opacity:.9;text-shadow:0 .1rem .5rem rgba(0,0,0,.9)}
-#sq-H .hd .tot{font-size:3.4rem}
-#sq-H .rw{background:rgba(0,0,0,.42);border-bottom:1px solid rgba(255,200,0,.18);margin-bottom:.3rem}
-#sq-H .rw .nm{font-size:2.1rem;text-shadow:0 .1rem .4rem rgba(0,0,0,.9)}
-#sq-H .rw .ct{font-size:3.1rem}
+#sq-H .rw{background:rgba(0,0,0,.42);border-bottom:1px solid rgba(255,200,0,.18)}
 #sq-H .rw .av{background:rgba(0,0,0,.4)}
 /* Ninho de Águias: foto de fundo (assets/ninho.jpg), mais discreta que a das Harpias */
 #sq-SV{background:linear-gradient(180deg,rgba(8,8,8,.92) 0%,rgba(8,8,8,.78) 32%,rgba(8,8,8,.12) 62%,rgba(8,8,8,.05) 100%),url(assets/ninho.jpg) 40% 100%/auto 82% no-repeat,#0b0b0b;
