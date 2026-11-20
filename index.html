@@ -745,7 +745,7 @@ function loginView(msg) {
     <p style="color:var(--err);min-height:1.4em;margin:.8rem 0 0">${esc(msg || '')}</p></div>`;
   $('#go').onclick = async () => {
     $('#go').disabled = true; $('#go').textContent = 'Abrindo o Google…';
-    try { sessionStorage.setItem('liga_admin', '1'); } catch (e) {}
+    try { sessionStorage.setItem('liga_admin', '1'); sessionStorage.removeItem('metas_admin'); } catch (e) {}
     const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + '/', queryParams: {prompt: 'select_account'}}});
     if (error) loginView('Erro: ' + error.message);
   };
@@ -1047,6 +1047,8 @@ function downloadCSV(C) {
 /* ================= BOOT ================= */
 function boot() {
   let flag = false; try { flag = sessionStorage.getItem('liga_admin') === '1'; } catch (e) {}
+  // login do painel Metas Águias (/metas/) volta pela raiz do site: manda de volta para /metas/ com o token
+  try { if (sessionStorage.getItem('metas_admin') === '1' && /access_token|error_description/.test(location.hash)) { location.replace('/metas/' + location.hash); return; } } catch (e) {}
   const isAdm = location.hash.startsWith('#admin') || /[?&]admin/.test(location.search) || (flag && /access_token|error_description/.test(location.hash));
   if (isAdm) { document.body.classList.add('adm'); initAdm(); } else initTV();
 }

@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Metas Águias</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --yellow:#ffc800; --yellow-d:#e6b200; --black:#17130d; --graphite:#2c2c35; --slate:#3d3c51; --indigo:#62608e; --violet:#8249da; --bone:#f3efe9;
+  --ok:#3fb984; --err:#e0533d;
+  --head:"Oswald","Roc Grotesk","Archivo Narrow",Impact,sans-serif; --body:"Archivo","Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--black);color:var(--bone);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+em{font-style:normal;color:var(--yellow)}
+.hide{display:none!important}
+
+/* =================== TV =================== */
+body.tv{overflow:hidden;cursor:none;font-size:16px}
+body.tv.showcursor{cursor:default}
+#tv{position:fixed;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;display:flex;flex-direction:column;padding:1.2rem 2rem 1rem;gap:.9rem;
+  background:linear-gradient(135deg,#2c2c35 0%,#17130d 55%,#0e0b07 100%);overflow:hidden}
+#tv::before{content:"";position:absolute;inset:0;background:url(assets/aguias-time-comercial.jpg) center/cover no-repeat;opacity:.11;mix-blend-mode:screen;pointer-events:none}
+#tv::after{content:"";position:absolute;left:-8%;top:-10%;width:34%;height:130%;background:linear-gradient(180deg,rgba(255,200,0,.18),rgba(255,200,0,.02));
+  transform:skewX(-15deg);pointer-events:none;animation:stripe 9s ease-in-out infinite alternate}
+@keyframes stripe{to{transform:skewX(-15deg) translateX(4%);opacity:.7}}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.top,.sumbar,.squads,.bottom{position:relative;z-index:2}
+
+.top{display:flex;align-items:center;justify-content:space-between;height:7.6rem;flex:none}
+.brand{display:flex;align-items:center;gap:1.4rem}
+.brand img.mk{height:6rem;filter:drop-shadow(0 0 1.2rem rgba(255,200,0,.5));animation:bolt 3.2s ease-in-out infinite}
+@keyframes bolt{0%,100%{filter:drop-shadow(0 0 .8rem rgba(255,200,0,.35))}50%{filter:drop-shadow(0 0 2rem rgba(255,200,0,.95))}}
+.brand h1{font-family:var(--head);font-weight:700;font-size:5.4rem;line-height:.95;letter-spacing:-.01em;text-transform:uppercase}
+.brand p{font-size:1.15rem;letter-spacing:.32em;text-transform:uppercase;opacity:.75;margin-top:.35rem}
+.clock{display:flex;align-items:center;gap:1.2rem;background:var(--yellow);color:var(--black);padding:.7rem 2.4rem .7rem 2.8rem;
+  clip-path:polygon(2rem 0,100% 0,100% 100%,0 100%);height:100%}
+.clock .big{font-family:var(--head);font-weight:700;font-size:5.6rem;line-height:1}
+.clock .lbl{font-family:var(--head);font-weight:700;font-size:1.8rem;line-height:1.05;text-transform:uppercase}
+.clock .hms{font-family:var(--head);font-weight:500;font-size:1.4rem;letter-spacing:.14em;margin-top:.2rem;opacity:.8}
+
+.sumbar{flex:none;display:grid;grid-template-columns:22rem 1fr 40rem;gap:1.6rem;align-items:center;height:8.6rem;padding:.6rem 1.6rem;
+  background:rgba(255,255,255,.06);border-left:.3rem solid var(--yellow)}
+.sumbar .pct{font-family:var(--head);font-weight:700;font-size:6rem;line-height:1;color:var(--yellow);text-shadow:0 0 1.6rem rgba(255,200,0,.45)}
+.sumbar .pct small{display:block;font-size:1rem;letter-spacing:.3em;text-transform:uppercase;color:var(--bone);opacity:.7;font-weight:500;text-shadow:none}
+.sumbar .tbar small{display:flex;justify-content:space-between;font-size:1.15rem;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-bottom:.5rem}
+.sumbar .tbar small b{font-family:var(--head);font-size:1.7rem;letter-spacing:.04em;color:var(--yellow)}
+.tbar .track{height:1.6rem;background:rgba(255,255,255,.14);position:relative}
+.tbar .track i{display:block;height:100%;background:linear-gradient(90deg,#c99700,var(--yellow));transition:width 1s}
+.sumbar .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.chip{background:rgba(255,255,255,.07);border-left:.28rem solid var(--yellow);padding:.4rem .8rem .45rem;min-width:0}
+.chip small{display:block;font-size:.95rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75;white-space:nowrap}
+.chip b{font-family:var(--head);font-size:2.4rem;font-weight:700;line-height:1.1}
+
+.squads{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.sq{--c:var(--yellow);position:relative;display:flex;flex-direction:column;min-height:0;padding:1rem 1.2rem 1rem;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 13%,#17130d) 0%,rgba(23,19,13,.92) 70%);
+  border:.14rem solid color-mix(in srgb,var(--c) 65%,transparent);
+  clip-path:polygon(0 0,calc(100% - 1.8rem) 0,100% 1.8rem,100% 100%,1.8rem 100%,0 calc(100% - 1.8rem));
+  box-shadow:inset 0 0 3.4rem color-mix(in srgb,var(--c) 12%,transparent)}
+.sq.bump{animation:bump .9s ease-out}
+@keyframes bump{20%{transform:scale(1.025);filter:brightness(1.5)}100%{transform:none}}
+.sq .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:.5rem}
+.sq .hd h2{font-family:var(--head);font-weight:700;font-size:3rem;line-height:1;text-transform:uppercase;color:var(--c);letter-spacing:.02em}
+.sq .hd small{display:block;font-size:1rem;letter-spacing:.2em;text-transform:uppercase;opacity:.75;margin-top:.3rem;color:var(--bone)}
+.sq .hd .tot{font-family:var(--head);font-weight:700;font-size:3.2rem;line-height:1;text-align:right;white-space:nowrap}
+.sq .hd .tot i{font-style:normal;font-size:1.5rem;opacity:.6;font-weight:500}
+.sq .sqbar{height:.6rem;background:rgba(255,255,255,.14);margin-bottom:.7rem}
+.sq .sqbar i{display:block;height:100%;background:var(--c);transition:width 1s}
+.rows{flex:1;min-height:0;display:flex;flex-direction:column;gap:.45rem}
+.rw{flex:1;min-height:0;max-height:7.6rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.9rem;background:rgba(255,255,255,.05);padding:.25rem .9rem .25rem .3rem}
+.rw .av{height:100%;max-height:5.6rem;min-height:2.4rem;aspect-ratio:1;background:var(--c);padding:.14rem;clip-path:polygon(.6rem 0,100% 0,100% calc(100% - .6rem),calc(100% - .6rem) 100%,0 100%,0 .6rem)}
+.rw .av>div,.rw .av>img{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;background:#17130d;color:var(--c);font-family:var(--head);font-weight:700;font-size:2rem;clip-path:polygon(.5rem 0,100% 0,100% calc(100% - .5rem),calc(100% - .5rem) 100%,0 100%,0 .5rem)}
+.rw .mid{min-width:0}
+.rw .nm{font-family:var(--head);font-weight:500;font-size:2rem;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+.rw .bar{height:.9rem;background:rgba(255,255,255,.14);margin-top:.25rem}
+.rw .bar i{display:block;height:100%;background:var(--c);transition:width .8s}
+.rw.hit .bar i{background:var(--yellow);animation:pulse 1.2s infinite}
+.rw.hit .nm{color:var(--yellow)}
+@keyframes pulse{50%{opacity:.55}}
+.rw .ct{font-family:var(--head);font-size:3rem;font-weight:700;text-align:right;white-space:nowrap;line-height:1}
+.rw .ct i{font-style:normal;font-size:1.6rem;opacity:.65;font-weight:500}
+.rw.hit .ct{color:var(--yellow)}
+
+.bottom{flex:none;height:5.4rem;display:flex;align-items:stretch;position:relative}
+.bottom .lab{background:var(--violet);font-family:var(--head);font-weight:700;font-size:1.5rem;display:flex;align-items:center;padding:0 2.2rem 0 1.6rem;letter-spacing:.12em;text-transform:uppercase;
+  clip-path:polygon(0 0,100% 0,calc(100% - 1.4rem) 100%,0 100%);margin-right:-.6rem;z-index:2;flex:none;min-width:17rem}
+.bottom .panel{flex:1;background:rgba(255,255,255,.07);display:flex;align-items:center;padding:0 2rem;overflow:hidden;position:relative}
+.slide{position:absolute;inset:0;display:flex;align-items:center;gap:3rem;padding:0 2rem;white-space:nowrap;font-size:1.65rem}
+.slide .ev{font-family:var(--head);font-weight:500;text-transform:uppercase;letter-spacing:.02em}
+.slide .ev small{opacity:.6;font-size:1.1rem;font-family:var(--body);text-transform:none;margin-left:.4rem}
+img.emoji{height:1em;width:1em;margin:0 .06em;vertical-align:-.12em;display:inline-block}
+.dot{display:inline-block;width:.9rem;height:.9rem;border-radius:50%;margin-right:.5rem}
+
+#evt{position:fixed;left:0;right:0;top:50%;transform:translate(0,-50%) scale(.9);z-index:60;opacity:0;pointer-events:none;text-align:center;padding:2.4rem 0;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.88) 14%,rgba(0,0,0,.88) 86%,transparent);transition:all .45s cubic-bezier(.2,1.4,.4,1)}
+#evt.on{opacity:1;transform:translate(0,-50%) scale(1)}
+#evt .k{font-family:var(--head);font-weight:700;font-size:11rem;line-height:1;text-transform:uppercase;letter-spacing:-.01em;color:var(--evc,var(--yellow));text-shadow:0 0 4rem var(--evc,var(--yellow))}
+#evt .s{font-family:var(--head);font-size:3.6rem;text-transform:uppercase;margin-top:.6rem;letter-spacing:.04em}
+#evt .m{font-size:7rem;display:block;margin-bottom:-.6rem;animation:float 1.2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-.5rem) rotate(6deg)}}
+#evt .s .lbl{display:block;font-size:2rem;letter-spacing:.3em;color:var(--yellow);margin-bottom:.4rem}
+#evt .s .val{color:var(--yellow);font-weight:700;font-size:5.2rem;margin-left:1.2rem;text-shadow:0 0 2rem rgba(255,200,0,.6)}
+.flash{position:fixed;inset:0;background:var(--evc,var(--yellow));opacity:0;z-index:55;pointer-events:none}
+.flash.on{animation:fl .9s ease-out}
+@keyframes fl{0%{opacity:.55}100%{opacity:0}}
+#fsbtn{display:block;opacity:0;transition:opacity .2s;position:fixed;right:1rem;bottom:1rem;z-index:71;font:600 1rem var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--yellow);color:var(--black);border:none;padding:.5rem 1rem;cursor:pointer}
+#admbtn{display:block;opacity:0;transition:opacity .2s;position:fixed;right:11rem;bottom:1rem;z-index:71;font:600 1rem var(--body);letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.7);color:var(--yellow);border:1px solid var(--yellow);padding:.5rem 1rem;text-decoration:none;cursor:pointer}
+#fsbtn:hover,#fsbtn:focus,#admbtn:hover,#admbtn:focus{opacity:1}
+#offline{position:fixed;left:1rem;top:.6rem;z-index:70;font-size:.95rem;background:var(--err);padding:.3rem .8rem;text-transform:uppercase;letter-spacing:.1em}
+
+/* =================== ADMIN =================== */
+body.adm{font-size:16px;background:linear-gradient(135deg,#2c2c35,#17130d 60%);min-height:100%;background-attachment:fixed}
+.wrap{max-width:1180px;margin:0 auto;padding:1rem 1rem 5rem}
+.ah{display:flex;align-items:center;gap:1rem;padding:.8rem 0 1rem;flex-wrap:wrap}
+.ah img{height:44px}
+.ah h1{font-family:var(--head);font-size:2rem;text-transform:uppercase;line-height:1}
+.ah .sp{flex:1}
+.ah a{color:var(--bone);font-size:.85rem;opacity:.7}
+.tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1rem;border-bottom:2px solid var(--slate)}
+.tabs button{background:none;border:none;color:var(--bone);font-family:var(--head);text-transform:uppercase;font-size:1.1rem;letter-spacing:.06em;padding:.7rem 1.2rem;opacity:.65;border-bottom:4px solid transparent;margin-bottom:-2px}
+.tabs button.on{opacity:1;border-color:var(--yellow);color:var(--yellow)}
+.card{background:var(--slate);border:1px solid var(--indigo);padding:1rem;margin-bottom:1rem;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.card h2{font-family:var(--head);text-transform:uppercase;font-size:1.3rem;margin-bottom:.7rem;letter-spacing:.04em}
+.card h3{font-family:var(--head);text-transform:uppercase;font-size:1rem;margin:.6rem 0 .4rem;opacity:.8;letter-spacing:.1em}
+.btn{background:var(--yellow);color:var(--black);border:none;font-family:var(--head);text-transform:uppercase;font-weight:700;letter-spacing:.06em;font-size:1rem;padding:.65rem 1.2rem;border-radius:2px}
+.btn:hover{background:var(--yellow-d)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--bone);border:1px solid var(--bone)}
+.btn.sm{padding:.3rem .7rem;font-size:.85rem}
+.btn.red{background:var(--err);color:#fff}
+input,select,textarea{background:var(--graphite);border:1px solid var(--indigo);color:var(--bone);padding:.55rem .7rem;font-family:var(--body);font-size:.95rem;border-radius:2px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--yellow);box-shadow:0 0 0 2px rgba(255,200,0,.25)}
+label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;opacity:.75;margin:.5rem 0 .2rem}
+.row{display:grid;gap:.8rem}
+.r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:repeat(3,1fr)}.r4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.r2,.r3,.r4{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.r2,.r3,.r4{grid-template-columns:1fr}}
+.sellers{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem}
+.sb{background:var(--graphite);border:2px solid var(--indigo);color:var(--bone);padding:.7rem .6rem;text-align:left;font-family:var(--head);font-size:1.1rem;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:.4rem}
+.sb small{font-family:var(--body);opacity:.65;font-size:.72rem}
+.sb.on{border-color:var(--yellow);background:rgba(255,200,0,.18)}
+.sb.done small{color:var(--ok);opacity:1}
+.tipos{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.tp{background:var(--graphite);border:2px solid var(--indigo);color:var(--bone);padding:1rem .5rem;font-family:var(--head);font-size:1.3rem;text-transform:uppercase}
+.tp.on{border-color:var(--yellow);background:rgba(255,200,0,.18);color:var(--yellow)}
+.prev{background:rgba(0,0,0,.3);border-left:4px solid var(--yellow);padding:.7rem 1rem;margin:.8rem 0;font-size:.95rem;min-height:2.6rem}
+.sc{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
+@media(max-width:760px){.sc{grid-template-columns:1fr 1fr}}
+.scb{padding:.7rem 1rem;border-left:5px solid var(--c,var(--yellow));background:rgba(0,0,0,.25)}
+.scb b{font-family:var(--head);font-size:2.2rem;display:block;line-height:1}
+.scb small{opacity:.7}
+.lst{display:flex;flex-direction:column;gap:.3rem}
+.li{display:flex;align-items:center;gap:.6rem;background:rgba(0,0,0,.25);padding:.45rem .7rem;font-size:.92rem;flex-wrap:wrap}
+.li.off{opacity:.45;text-decoration:line-through}
+.li .t{opacity:.6;font-size:.78rem;min-width:105px}
+.li .g{flex:1;min-width:150px}
+.badge{background:var(--violet);font-family:var(--head);font-size:.75rem;padding:.1rem .5rem;text-transform:uppercase;letter-spacing:.08em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#06240f;font-weight:700;padding:.8rem 1.4rem;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.5);font-family:var(--head);text-transform:uppercase;letter-spacing:.05em}
+.toast.err{background:var(--err);color:#fff}
+.login{max-width:380px;margin:12vh auto;text-align:center}
+.login img{height:90px;margin-bottom:1rem}
+.ec{display:grid;grid-template-columns:70px 1fr;gap:.8rem;align-items:start}
+.ec .ph{width:70px;height:70px;background:var(--graphite);display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:1.6rem;overflow:hidden;border:1px solid var(--indigo)}
+.ec .ph img{width:100%;height:100%;object-fit:cover}
+.help{font-size:.82rem;opacity:.75;line-height:1.5}
+.help code,pre{background:rgba(0,0,0,.4);padding:.1rem .35rem;font-size:.8rem}
+details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-transform:uppercase;letter-spacing:.06em}
+.sync{font-size:.8rem;opacity:.8}
+.newcard{border:2px solid var(--yellow)}
+</style>
+</head>
+<body>
+
+<!-- ======= TV ======= -->
+<div id="tv" class="hide">
+  <canvas id="fx"></canvas>
+  <button id="fsbtn" title="Tela cheia (tecla F)">⛶ Tela cheia</button>
+  <a id="admbtn" href="index.html?admin=1" title="Painel ADM">⚙ Painel ADM</a>
+  <div id="offline" class="hide">sem conexão — tentando de novo…</div>
+  <header class="top">
+    <div class="brand">
+      <img class="mk" src="assets/pronix-mark.svg" alt="">
+      <div><h1>Metas <em>Águias</em></h1><p id="periodo">Pronix · Time Comercial</p></div>
+    </div>
+    <div class="clock">
+      <div class="big" id="dias">–</div>
+      <div><div class="lbl" id="dlbl">dias para<br>fechar a semana</div><div class="hms" id="hms"></div></div>
+    </div>
+  </header>
+  <section class="sumbar" id="sumbar"></section>
+  <section class="squads" id="squads"></section>
+  <footer class="bottom">
+    <div class="lab">Últimas vendas</div>
+    <div class="panel"><div class="slide" id="sl0"></div></div>
+  </footer>
+  <div class="flash" id="flash"></div>
+  <div id="evt"><span class="m" id="evm"></span><div class="k" id="evk"></div><div class="s" id="evs"></div></div>
+</div>
+
+<!-- ======= ADMIN ======= -->
+<div id="adm" class="hide"><div class="wrap" id="admroot"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@15.0.0/dist/twemoji.min.js"></script>
+<script>
+// Emojis como imagens (Twemoji): TVs e navegadores antigos não têm fonte de emoji colorida e mostram ícones quebrados.
+(function () {
+  if (!window.twemoji) return;
+  var opt = {base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/', folder: 'svg', ext: '.svg', className: 'emoji'};
+  var pend = false;
+  function run() { pend = false; try { twemoji.parse(document.body, opt); } catch (e) {} }
+  function sched() { if (!pend) { pend = true; requestAnimationFrame(run); } }
+  document.addEventListener('DOMContentLoaded', function () { run(); new MutationObserver(sched).observe(document.body, {childList: true, subtree: true, characterData: true}); });
+})();
+</script>
+<script>
+const GS_CODE = `// Metas Águias — recebe os dados do sistema e escreve uma aba para cada tabela enviada.
+// Como usar: na planilha > Extensões > Apps Script > cole este código > Implantar > Nova implantação
+// > Tipo: App da Web > Executar como: Eu > Quem tem acesso: Qualquer pessoa > Implantar. Copie a URL /exec
+// e cole em ADM > Config > "URL da planilha".
+
+function doPost(e) {
+  var d = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  Object.keys(d).forEach(function (nome) { escreve_(ss, nome, d[nome]); });
+  return ContentService.createTextOutput('ok');
+}
+
+function doGet() {
+  return ContentService.createTextOutput('Metas Aguias: webhook ativo');
+}
+
+function escreve_(ss, nome, linhas) {
+  var sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
+  sh.clear();
+  if (!linhas || !linhas.length) return;
+  var w = linhas[0].length;
+  sh.getRange(1, 1, linhas.length, w).setValues(linhas);
+  sh.getRange(1, 1, 1, w).setFontWeight('bold').setBackground('#17130d').setFontColor('#ffc800');
+  sh.setFrozenRows(1);
+  sh.autoResizeColumns(1, w);
+}
+`;
+
+/* ================= CONFIG ================= */
+const SB = 'https://kngsracetmwrpqueqsoj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuZ3NyYWNldG13cnBxdWVxc29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMDM4MTgsImV4cCI6MjEwMzc3OTgxOH0.orP3sqwKrQZqotGC02ap8h1lH_xxtMIyt2yyqyG13Sk';
+const HDR = {apikey: KEY, Authorization: 'Bearer ' + KEY};
+// squads (o código do cargo é o que fica gravado no banco)
+const SQ = {
+  L:  {nome: 'Supervisor', cor: '#ffc800'},
+  H:  {nome: 'Harpia',     cor: '#b58cff'},
+  V:  {nome: 'Vekta',      cor: '#35e07c'},
+  SV: {nome: 'Sem Vekta',  cor: '#ffffff'}
+};
+const SQ_ORDER = ['L', 'H', 'V', 'SV'];
+const TIPOS = {hub: {nome: 'Hub'}, imersao: {nome: 'Imersão'}, performance: {nome: 'Performance'}};
+const META_PADRAO = {L: 6, H: 5, V: 4, SV: 1};
+const POLL_MS = 4000;
+const WEEK = 7 * 86400000; // semana comercial: de quarta 00:00 a terça 23:59:59
+
+/* ================= UTIL ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+async function api(path) {
+  const r = await fetch(SB + '/rest/v1/' + path, {headers: HDR});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+let SBC = null; // cliente supabase (só no painel ADM)
+async function rpc(fn, args) {
+  const h = {...HDR, 'Content-Type': 'application/json'};
+  if (SBC) { const {data} = await SBC.auth.getSession(); if (data.session) h.Authorization = 'Bearer ' + data.session.access_token; }
+  const r = await fetch(SB + '/rest/v1/rpc/' + fn, {method: 'POST', headers: h, body: JSON.stringify(args)});
+  const t = await r.text();
+  if (!r.ok) { let m = t; try { m = JSON.parse(t).message; } catch (e) {} throw new Error(m); }
+  try { return t ? JSON.parse(t) : null; } catch (e) { return t; }
+}
+const fmtBR = (iso, opt) => new Date(iso).toLocaleString('pt-BR', {timeZone: 'America/Sao_Paulo', ...(opt || {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})});
+function toLocalInput(iso) { return new Date(iso).toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo', hour12: false}).slice(0, 16).replace(' ', 'T'); }
+function fromLocalInput(v) { return new Date(v + ':00-03:00').toISOString(); }
+function ago(iso) {
+  const s = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return 'agora mesmo';
+  if (s < 3600) return 'há ' + Math.floor(s / 60) + ' min';
+  if (s < 86400) return 'há ' + Math.floor(s / 3600) + ' h';
+  return 'há ' + Math.floor(s / 86400) + ' d';
+}
+const firstName = v => v.apelido ? v.nome.split(' ')[0] + ' “' + v.apelido + '”' : v.nome;
+
+/* ================= DADOS ================= */
+const S = {cfg: null, vend: [], vendas: [], fotos: {}, ok: false};
+try { const c = JSON.parse(localStorage.getItem('metas_cache') || 'null'); if (c) Object.assign(S, c, {ok: false}); } catch (e) {}
+
+async function loadAll(full) {
+  const light = 'id,nome,apelido,cargo,meta,ativo,ordem';
+  const [cfg, vend, vendas, fotos] = await Promise.all([
+    api('metas_config_publica?select=*'),
+    api('metas_vendedores?select=' + light + '&order=ordem,nome'),
+    api('metas_vendas?select=*&order=criado_em.desc&limit=5000'),
+    (full || !Object.keys(S.fotos).length) ? api('metas_vendedores?select=id,foto&foto=not.is.null') : Promise.resolve(null)
+  ]);
+  S.cfg = cfg[0]; S.vend = vend; S.vendas = vendas;
+  if (fotos) { S.fotos = {}; fotos.forEach(f => S.fotos[f.id] = f.foto); }
+  S.ok = true;
+  try { localStorage.setItem('metas_cache', JSON.stringify({cfg: S.cfg, vend: S.vend, vendas: S.vendas.slice(0, 600)})); } catch (e) {}
+}
+
+/* ================= CÁLCULO ================= */
+// semana comercial que contém o instante "now": semanas de 7 dias a partir da âncora (uma quarta 00:00)
+function weekRange(now) {
+  const a = +new Date(S.cfg.semana_ancora);
+  const n = Math.floor(((now ?? Date.now()) - a) / WEEK);
+  return {n, start: a + n * WEEK, end: a + (n + 1) * WEEK - 1000};
+}
+function calc(rg) {
+  rg = rg || weekRange();
+  const byId = {}; S.vend.forEach(v => byId[v.id] = v);
+  const SS = {};
+  S.vend.forEach(v => SS[v.id] = {v, sem: 0, hub: 0, imersao: 0, performance: 0, valor: 0});
+  for (const s of S.vendas) {
+    if (s.cancelada) continue;
+    const t = +new Date(s.criado_em); if (t < rg.start || t > rg.end) continue;
+    const ss = SS[s.vendedor_id]; if (!ss) continue;
+    ss.sem += s.qtd; ss[s.tipo] += s.qtd; ss.valor += +s.valor || 0;
+  }
+  const Q = {};
+  SQ_ORDER.forEach(k => Q[k] = {k, vend: [], vendas: 0, meta: 0, bateram: 0});
+  const T = {vendas: 0, meta: 0, bateram: 0, ativos: 0, hub: 0, imersao: 0, performance: 0, valor: 0};
+  S.vend.filter(v => v.ativo && Q[v.cargo]).forEach(v => {
+    const ss = SS[v.id], q = Q[v.cargo];
+    q.vend.push(ss); q.vendas += ss.sem; q.meta += v.meta; if (ss.sem >= v.meta) q.bateram++;
+    T.vendas += ss.sem; T.meta += v.meta; T.ativos++; if (ss.sem >= v.meta) T.bateram++;
+    T.hub += ss.hub; T.imersao += ss.imersao; T.performance += ss.performance; T.valor += ss.valor;
+  });
+  return {SS, Q, T, byId, rg};
+}
+const nomeCurto = v => v.apelido ? v.nome.split(' ')[0] + ' “' + v.apelido + '”' : v.nome.split(' ')[0];
+
+
+/* ================= SOM + FX + PALCO ================= */
+let AC = null, soundOn = false;
+function enableSound() {
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); soundOn = true; const h = $('#soundhint'); if (h) h.classList.add('hide'); } catch (e) {}
+}
+function tone(f, t0, d, type, vol) {
+  if (!soundOn || !AC) return;
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'square'; o.frequency.value = f;
+  g.gain.setValueAtTime(vol || .12, AC.currentTime + t0);
+  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + t0 + d);
+  o.connect(g); g.connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + d + .02);
+}
+function fmtMoney(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2}); }
+/* ---- música da venda: jingle de comemoração (sintetizado, sem direitos autorais) ---- */
+function noiseHit(t0, d, vol, hp) {
+  if (!soundOn || !AC) return;
+  const n = Math.max(1, Math.floor(AC.sampleRate * d)), buf = AC.createBuffer(1, n, AC.sampleRate), ch = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) ch[i] = Math.random() * 2 - 1;
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t = AC.currentTime + t0;
+  s.buffer = buf; f.type = 'highpass'; f.frequency.value = hp;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + d + .02);
+}
+function kick(t0) {
+  if (!soundOn || !AC) return;
+  const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+  o.type = 'sine'; o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
+  g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(.0001, t + .22);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + .25);
+}
+function sfxVendaSynth() {
+  const B = 60 / 128, E = B / 2; // 128 bpm, colcheia
+  // melodia: [frequência, tempo (colcheias), duração (colcheias)]
+  const mel = [[523.25,0,1],[659.25,1,1],[783.99,2,1],[1046.5,3,1],[783.99,4,1],[1046.5,5,1],[1318.5,6,1],[1046.5,7,1],
+               [880,8,1],[1046.5,9,1],[1174.7,10,1],[1318.5,11,1],[1568,12,2],[1318.5,14,1],[1568,15,1],[2093,16,5]];
+  mel.forEach(([f, s, d]) => { tone(f, s * E, d * E * .95, 'triangle', .2); tone(f * 2, s * E, d * E * .5, 'sine', .05); });
+  // baixo
+  [[130.8,0],[130.8,2],[98,4],[98,6],[110,8],[110,10],[98,12],[130.8,14],[130.8,16]].forEach(([f, s]) => tone(f, s * E, E * 1.8, 'sawtooth', .09));
+  // bateria: bumbo nos tempos, caixa nos contratempos, chimbal nas colcheias
+  for (let i = 0; i < 16; i += 2) kick(i * E);
+  [4, 12].forEach(s => noiseHit(s * E, .14, .22, 1500));
+  for (let i = 0; i < 16; i++) noiseHit(i * E, .045, .07, 7000);
+  // acorde final
+  [523.25, 659.25, 783.99, 1046.5].forEach(f => tone(f, 16 * E, 1.4, 'sawtooth', .07));
+  kick(16 * E); noiseHit(16 * E, .5, .12, 3000);
+}
+let vendaAudio = null, customMusic = null;
+function sfxVenda(ms) {
+  if (!soundOn || !AC) return;
+  try { if (vendaAudio) { vendaAudio.pause(); vendaAudio = null; } } catch (e) {}
+  // se existir assets/musica-venda.mp3, toca ele (a música da empresa); senão toca o jingle
+  if (customMusic !== false) {
+    const au = new Audio('assets/musica-venda.mp3'); au.volume = .9; vendaAudio = au;
+    au.play().then(() => { customMusic = true; setTimeout(() => { if (vendaAudio === au) { let v = .9; const fd = setInterval(() => { v -= .1; if (v <= 0) { clearInterval(fd); au.pause(); } else au.volume = v; }, 80); } }, Math.max(1000, ms - 600)); })
+      .catch(() => { customMusic = false; sfxVendaSynth(); });
+  } else sfxVendaSynth();
+}
+function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
+function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
+
+const STAGE = {w: 1920, h: 1080};
+function fitStage() {
+  const vw = innerWidth, vh = innerHeight;
+  const s = Math.min(vw / 1920, vh / 1080);           // escala base 16:9
+  STAGE.w = Math.max(1920, vw / s); STAGE.h = Math.max(1080, vh / s);   // estica o lado que sobra
+  const tv = $('#tv');
+  tv.style.width = STAGE.w + 'px'; tv.style.height = STAGE.h + 'px';
+  tv.style.transform = 'scale(' + s + ')';
+}
+const fx = {cv: null, cx: null, parts: [], embers: []};
+function fxInit() {
+  fx.cv = $('#fx'); fx.cx = fx.cv.getContext('2d');
+  const rs = () => { fitStage(); fx.cv.width = STAGE.w; fx.cv.height = STAGE.h; };
+  rs(); addEventListener('resize', rs);
+  for (let i = 0; i < 60; i++) fx.embers.push(ember(true));
+  (function loop() {
+    const c = fx.cx, W = fx.cv.width, Hh = fx.cv.height;
+    c.clearRect(0, 0, W, Hh);
+    fx.embers.forEach((e, i) => {
+      e.y -= e.v; e.x += Math.sin((e.y + e.p) / 60) * .5; e.a -= .0016;
+      if (e.y < -10 || e.a <= 0) fx.embers[i] = ember(false);
+      c.globalAlpha = Math.max(0, e.a); c.fillStyle = e.c; c.beginPath(); c.arc(e.x, e.y, e.r, 0, 6.3); c.fill();
+    });
+    fx.parts = fx.parts.filter(p => p.l > 0);
+    fx.parts.forEach(p => {
+      p.vy += .22; p.x += p.vx; p.y += p.vy; p.l--; p.rot += p.vr;
+      c.globalAlpha = Math.min(1, p.l / 40); c.fillStyle = p.c;
+      c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); c.restore();
+    });
+    c.globalAlpha = 1;
+    requestAnimationFrame(loop);
+  })();
+}
+function ember(init) {
+  const W = fx.cv.width, Hh = fx.cv.height;
+  return {x: Math.random() * W, y: init ? Math.random() * Hh : Hh + 10, v: .4 + Math.random() * 1.2, r: 1 + Math.random() * 2.6, a: .3 + Math.random() * .6, p: Math.random() * 100, c: Math.random() < .7 ? '#ffc800' : '#ff8a1f'};
+}
+function confetti(colors, n, fromY) {
+  const W = fx.cv.width, Hh = fx.cv.height;
+  for (let i = 0; i < n; i++) {
+    const left = i % 2 === 0;
+    fx.parts.push({x: left ? 0 : W, y: fromY ?? Hh * .8, vx: (left ? 1 : -1) * (6 + Math.random() * 16), vy: -(12 + Math.random() * 20), w: 8 + Math.random() * 12, h: 6 + Math.random() * 10,
+      c: colors[(Math.random() * colors.length) | 0], l: 120 + Math.random() * 90, rot: Math.random() * 6, vr: (Math.random() - .5) * .4});
+  }
+}
+function rain(colors, n) {
+  const W = fx.cv.width;
+  for (let i = 0; i < n; i++) fx.parts.push({x: Math.random() * W, y: -20 - Math.random() * 400, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 5, w: 8 + Math.random() * 10, h: 6 + Math.random() * 10, c: colors[(Math.random() * colors.length) | 0], l: 400, rot: 0, vr: (Math.random() - .5) * .3});
+}
+
+/* ================= TV ================= */
+const TV = {prevHit: null, seenV: new Set(), queue: [], busy: false, html: {}};
+
+function initTV() {
+  document.body.classList.add('tv');
+  $('#tv').classList.remove('hide');
+  fxInit();
+  const fs = () => { try { if (!document.fullscreenElement) document.documentElement.requestFullscreen({navigationUI: 'hide'}).catch(() => {}); else document.exitFullscreen(); } catch (e) {} };
+  const enterFs = () => { try { if (!document.fullscreenElement) document.documentElement.requestFullscreen({navigationUI: 'hide'}).catch(() => {}); } catch (e) {} };
+  let first = true;
+  addEventListener('click', e => { enableSound(); if (e.target.id === 'fsbtn') { fs(); return; } if (first) { first = false; enterFs(); } });
+  addEventListener('keydown', e => { enableSound(); if (e.key === 'f' || e.key === 'F') fs(); });
+  document.addEventListener('mousemove', () => { document.body.classList.add('showcursor'); clearTimeout(TV.ct); TV.ct = setTimeout(() => document.body.classList.remove('showcursor'), 2500); });
+  if (S.cfg) renderTV(true);
+  tick();
+  setInterval(tick, 1000);
+  setInterval(async () => { try { await loadAll(false); $('#offline').classList.add('hide'); renderTV(false); } catch (e) { $('#offline').classList.remove('hide'); } }, POLL_MS);
+  setInterval(async () => { try { await loadAll(true); renderTV(false); } catch (e) {} }, 60000);
+  // a TV se atualiza sozinha quando sai uma versão nova do site (sem precisar apertar F5)
+  const pageHash = async () => { const t = await (await fetch(location.pathname, {cache: 'no-store'})).text(); let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return h; };
+  pageHash().then(h => { TV.ver = h; }).catch(() => {});
+  fetch('assets/musica-venda.mp3', {method: 'HEAD'}).then(r => { if (!r.ok) customMusic = false; }).catch(() => { customMusic = false; }); // sem arquivo próprio: usa o jingle
+  setInterval(async () => { try { const h = await pageHash(); if (TV.ver != null && h !== TV.ver && !TV.busy && !TV.queue.length) location.reload(); } catch (e) {} }, 120000);
+  loadAll(true).then(() => renderTV(true)).catch(() => $('#offline').classList.remove('hide'));
+}
+
+function setHtml(sel, html) { if (TV.html[sel] === html) return; TV.html[sel] = html; $(sel).innerHTML = html; }
+
+function renderTV(initial) {
+  if (!S.cfg) return;
+  const C = calc(), {SS, Q, T, byId, rg} = C;
+
+  // eventos: vendas novas e metas batidas
+  const ev = [];
+  const hitNow = new Set(Object.values(SS).filter(s => s.v.ativo && s.sem >= s.v.meta).map(s => s.v.id));
+  if (TV.prevHit === null) { S.vendas.forEach(s => TV.seenV.add(s.id)); }
+  else {
+    S.vendas.slice().reverse().forEach(s => {
+      if (TV.seenV.has(s.id)) return; TV.seenV.add(s.id);
+      const v = byId[s.vendedor_id];
+      if (s.cancelada || !v) return;
+      ev.push({kind: 'sale', cargo: v.cargo, who: nomeCurto(v), txt: (s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome, valor: s.valor ? +s.valor : 0});
+    });
+    hitNow.forEach(id => { if (!TV.prevHit.has(id)) { const v = byId[id]; ev.push({kind: 'meta', cargo: v.cargo, who: nomeCurto(v), txt: 'bateu a meta da semana'}); } });
+  }
+  TV.prevHit = hitNow;
+
+  // barra de resumo da semana
+  const pct = T.meta ? Math.round(T.vendas / T.meta * 100) : 0;
+  setHtml('#sumbar', `
+    <div class="pct"><small>da meta da semana</small>${pct}%</div>
+    <div class="tbar"><small><span>Vendas do time na semana</span><b>${T.vendas} / ${T.meta} · ${T.bateram} de ${T.ativos} bateram a meta</b></small><div class="track"><i style="width:${Math.min(100, pct)}%"></i></div></div>
+    <div class="chips">${Object.entries({hub: 'Hubs', imersao: 'Imersões', performance: 'Performances'}).map(([k, n]) => `<div class="chip"><small>${n}</small><b>${T[k]}</b></div>`).join('')}</div>`);
+
+  // colunas dos squads
+  setHtml('#squads', SQ_ORDER.map(k => {
+    const q = Q[k], sq = SQ[k], metaSq = (S.cfg.metas && S.cfg.metas[k]) || META_PADRAO[k];
+    const pq = q.meta ? Math.min(100, Math.round(q.vendas / q.meta * 100)) : 0;
+    const rows = q.vend.map(ss => {
+      const v = ss.v, pc = Math.min(100, Math.round(ss.sem / v.meta * 100)), foto = S.fotos[v.id];
+      const ini = v.nome.split(' ').map(x => x[0]).slice(0, 2).join('');
+      return `<div class="rw ${ss.sem >= v.meta ? 'hit' : ''}"><div class="av">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
+        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div></div>
+        <div class="ct">${ss.sem}<i>/${v.meta}</i>${ss.sem >= v.meta ? ' ✅' : ''}</div></div>`;
+    }).join('') || '<div style="opacity:.5;padding:1rem">Ninguém neste squad.</div>';
+    return `<article class="sq" id="sq-${k}" style="--c:${sq.cor}">
+      <div class="hd"><div><h2>${sq.nome}</h2><small>Meta: ${metaSq} venda${metaSq > 1 ? 's' : ''} · ${q.bateram} de ${q.vend.length} bateram</small></div><div class="tot">${q.vendas}<i>/${q.meta}</i></div></div>
+      <div class="sqbar"><i style="width:${pq}%"></i></div><div class="rows">${rows}</div></article>`;
+  }).join(''));
+
+  // cabeçalho com as datas da semana
+  const f = d => fmtBR(d, {day: '2-digit', month: '2-digit'});
+  $('#periodo').textContent = 'Pronix · Time Comercial · Semana ' + f(rg.start) + ' a ' + f(rg.end);
+
+  // últimas vendas
+  const evs = S.vendas.filter(s => !s.cancelada && byId[s.vendedor_id]).slice(0, 4).map(s => {
+    const v = byId[s.vendedor_id];
+    return `<span class="ev"><span class="dot" style="background:${SQ[v.cargo].cor}"></span>💰 ${esc(v.nome.split(' ')[0])} fechou ${(s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome}<small>${ago(s.criado_em)}</small></span>`;
+  });
+  setHtml('#sl0', evs.join('') || '<span class="ev">Nenhuma venda lançada ainda.</span>');
+  $('#sl0').classList.add('on');
+
+  tick();
+  if (!initial) ev.forEach(e => { e.t = Date.now(); TV.queue.push(e); });
+  runQueue();
+}
+
+function tick() {
+  if (!S.cfg) return;
+  const rg = weekRange(), ms = Math.max(0, rg.end + 1000 - Date.now());
+  const d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000);
+  const p = x => String(x).padStart(2, '0');
+  $('#dias').textContent = d === 0 ? '⚡' : d;
+  $('#dlbl').innerHTML = d === 0 ? 'último dia<br>da semana!' : (d === 1 ? 'dia para<br>fechar a semana' : 'dias para<br>fechar a semana');
+  $('#hms').textContent = p(h) + 'h ' + p(m) + 'm ' + p(s) + 's';
+}
+
+document.addEventListener('visibilitychange', () => { if (!document.hidden) runQueue(); });
+function runQueue() {
+  if (TV.busy || !TV.queue.length) return;
+  if (document.hidden) return; // aba em segundo plano: espera voltar para mostrar a animação
+  TV.queue = TV.queue.filter(x => Date.now() - (x.t || 0) < 10 * 60 * 1000); // descarta eventos muito antigos
+  if (!TV.queue.length) return;
+  TV.busy = true;
+  const e = TV.queue.shift();
+  const col = SQ[e.cargo].cor, sqn = SQ[e.cargo].nome;
+  const root = $('#evt');
+  root.style.setProperty('--evc', col);
+  $('#flash').style.setProperty('--evc', col);
+  const isMeta = e.kind === 'meta';
+  const cardMs = isMeta ? 5200 : (TV.queue.length ? 3200 : 5200);
+  $('#evm').textContent = isMeta ? '🎯' : '💰';
+  $('#evk').textContent = e.who;
+  $('#evs').innerHTML = isMeta
+    ? `<span class="lbl">Meta batida · ${esc(sqn)}</span>${esc(e.txt)}`
+    : `<span class="lbl">Nova venda · ${esc(sqn)}</span>${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}`;
+  root.classList.add('on');
+  const fl = $('#flash'); fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on');
+  const el = $('#sq-' + e.cargo); if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  if (isMeta) { sfxMedal(); confetti([col, '#ffc800', '#ffffff', '#ff8a1f'], 170); setTimeout(() => confetti([col, '#ffc800'], 90), 700); }
+  else { sfxVenda(cardMs); confetti([col, '#ffc800', '#ffffff'], 90); }
+  setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, cardMs);
+}
+
+/* ================= helpers do admin ================= */
+function toast(msg, err) {
+  const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg; document.body.appendChild(t);
+  setTimeout(() => t.remove(), err ? 4500 : 2200);
+}
+function agoraBR() { const n = new Date().toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo', hour12: false}); return n.slice(8, 10) + '/' + n.slice(5, 7) + '/' + n.slice(0, 4) + ' ' + n.slice(11, 16); }
+// digita só números: 061120261430 vira 06/11/2026 14:30 (as barras, o espaço e os dois pontos entram sozinhos)
+function maskDataHora(v) {
+  const d = String(v || '').replace(/\D/g, '').slice(0, 12);
+  let o = d.slice(0, 2);
+  if (d.length > 2) o += '/' + d.slice(2, 4);
+  if (d.length > 4) o += '/' + d.slice(4, 8);
+  if (d.length > 8) o += ' ' + d.slice(8, 10);
+  if (d.length > 10) o += ':' + d.slice(10, 12);
+  return o;
+}
+// "06/11/2026 14:30" -> ISO (horário de Brasília). Só data (10 caracteres) usa a hora de agora. Inválido -> null
+function parseDataHora(t) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/.exec(String(t || '').trim());
+  if (!m) return null;
+  let [, dd, mm, yy, hh, mi] = m;
+  if (hh === undefined) { const n = new Date().toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo', hour12: false}); hh = n.slice(11, 13); mi = n.slice(14, 16); }
+  const day = +dd, mon = +mm, yr = +yy, H = +hh, M = +mi;
+  if (mon < 1 || mon > 12 || day < 1 || day > 31 || H > 23 || M > 59 || yr < 2020 || yr > 2100) return null;
+  const dt = new Date(`${yy}-${mm}-${dd}T${hh}:${mi}:00-03:00`);
+  if (isNaN(dt) || dt.toLocaleString('sv-SE', {timeZone: 'America/Sao_Paulo'}).slice(0, 10) !== `${yy}-${mm}-${dd}`) return null; // ex.: 31/02
+  return dt.toISOString();
+}
+function parseMoney(t) {
+  t = String(t || '').replace(/[^\d.,]/g, '');
+  if (!t) return null;
+  const n = parseFloat(t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t);
+  return isFinite(n) && n >= 0 ? n : null;
+}
+function shrink(file, max) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = () => rej(new Error('Imagem inválida')); img.src = url;
+  });
+}
+
+/* ================= ADMIN ================= */
+const A = {pin: 'jwt', me: null, tab: 'venda', sel: null, tipo: null, qtd: 1, data: '', valor: '', filtro: 'todos', adminCfg: null, saved: ''};
+
+async function initAdm() {
+  $('#adm').classList.remove('hide');
+  SBC = supabase.createClient(SB, KEY, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit'}});
+  const {data} = await SBC.auth.getSession();
+  if (data.session) { try { sessionStorage.removeItem('metas_admin'); } catch (e) {} }
+  if (!data.session) return loginView();
+  let me = null;
+  try { me = await rpc('liga_me', {}); } catch (e) {}
+  if (!me) return deniedView(data.session.user.email);
+  A.me = me; await enterAdm();
+}
+function loginView(msg) {
+  $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Painel ADM · Metas Águias</h2>
+    <p class="help" style="margin:.4rem 0 1rem">Entre com seu e-mail Google autorizado (Pronix ou VDV Group).</p>
+    <button class="btn" id="go" style="width:100%;font-size:1.1rem;padding:.9rem">Entrar com Google</button>
+    <p style="color:var(--err);min-height:1.4em;margin:.8rem 0 0">${esc(msg || '')}</p></div>`;
+  $('#go').onclick = async () => {
+    $('#go').disabled = true; $('#go').textContent = 'Abrindo o Google…';
+    try { sessionStorage.setItem('metas_admin', '1'); } catch (e) {}
+    const {error} = await SBC.auth.signInWithOAuth({provider: 'google', options: {redirectTo: location.origin + '/', queryParams: {prompt: 'select_account'}}});
+    if (error) loginView('Erro: ' + error.message);
+  };
+}
+function deniedView(email) {
+  $('#admroot').innerHTML = `<div class="login card"><img src="assets/pronix-mark.svg" alt=""><h2>Sem acesso</h2>
+    <p class="help" style="margin:.6rem 0 1rem">A conta <b>${esc(email || '')}</b> não está autorizada a lançar vendas. Só Jéssica, Pedro e Guilherme têm acesso.</p>
+    <button class="btn sec" id="go" style="width:100%">Entrar com outra conta</button></div>`;
+  $('#go').onclick = async () => { await SBC.auth.signOut(); loginView(); };
+}
+async function enterAdm() {
+  await loadAll(true);
+  try { A.adminCfg = await rpc('metas_get_admin_config', {p_pin: A.pin}); } catch (e) {}
+  renderAdm();
+  setInterval(async () => { if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return; try { await loadAll(false); renderAdm(true); } catch (e) {} }, 8000);
+}
+async function refresh() { await loadAll(true); renderAdm(); }
+
+function renderAdm(soft) {
+  const root = $('#admroot');
+  const sy = window.scrollY;
+  const C = calc();
+  const tabs = [['venda', '💰 Lançar venda'], ['hist', '📋 Histórico'], ['equipe', '👥 Equipe'], ['cfg', '⚙️ Config']];
+  const f = d => fmtBR(d, {day: '2-digit', month: '2-digit'});
+  root.innerHTML = `
+    <div class="ah"><img src="assets/pronix-mark.svg" alt=""><h1>Metas <em>Águias</em> · ADM</h1><span class="sp"></span>
+      <span class="sync">👤 ${esc(A.me ? A.me.nome : '')}</span><a href="./" target="_blank">abrir telão ↗</a><a href="#" id="lo">sair</a></div>
+    <p class="help" style="margin-bottom:.6rem">Semana atual: <b>${f(C.rg.start)} a ${f(C.rg.end)}</b> (quarta a terça) · time: <b>${C.T.vendas}/${C.T.meta}</b> vendas · ${C.T.bateram} de ${C.T.ativos} bateram a meta · 💰 ${fmtMoney(C.T.valor)}</p>
+    <div class="sc" style="margin-bottom:1rem">
+      ${SQ_ORDER.map(k => `<div class="scb" style="--c:${SQ[k].cor}"><small>${SQ[k].nome}</small><b>${C.Q[k].vendas}<span style="font-size:1.1rem;opacity:.6">/${C.Q[k].meta}</span></b><small>${C.Q[k].bateram} de ${C.Q[k].vend.length} bateram</small></div>`).join('')}
+    </div>
+    <div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${A.tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div id="pane"></div>`;
+  $('#lo').onclick = async e => { e.preventDefault(); await SBC.auth.signOut(); try { sessionStorage.removeItem('metas_admin'); } catch (x) {} location.href = 'index.html?admin=1'; };
+  root.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { A.tab = b.dataset.t; renderAdm(); });
+  ({venda: paneVenda, hist: paneHist, equipe: paneEquipe, cfg: paneCfg})[A.tab](C);
+  if (soft) window.scrollTo(0, sy);
+}
+
+function sellerBtn(v, C) {
+  const ss = C.SS[v.id];
+  return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${ss.sem >= v.meta ? 'done' : ''}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}<br><small>${ss.sem}/${v.meta} na semana${ss.sem >= v.meta ? ' ✅' : ''}</small></span></button>`;
+}
+function previewVenda(C) {
+  if (!A.sel || !A.tipo) return 'Escolha o vendedor e o produto vendido.';
+  const v = C.byId[A.sel], ss = C.SS[A.sel], q = Math.max(1, +A.qtd || 1), val = parseMoney(A.valor);
+  const nw = ss.sem + q;
+  return `<b>${esc(v.nome)}</b> (${SQ[v.cargo].nome}) · ${q}× ${TIPOS[A.tipo].nome}. Semana: ${ss.sem}/${v.meta} → <b>${nw}/${v.meta}</b>${ss.sem < v.meta && nw >= v.meta ? ' <b style="color:var(--yellow)">· META BATIDA! 🎯</b>' : ''}${val ? `<br>💰 <b>${fmtMoney(val)}</b>` : ''}`;
+}
+function paneVenda(C) {
+  const col = k => `<div class="card"><h2 style="color:${SQ[k].cor}">${SQ[k].nome}</h2><div class="sellers">${S.vend.filter(v => v.cargo === k && v.ativo).map(v => sellerBtn(v, C)).join('') || '<span class="help">Ninguém neste squad.</span>'}</div></div>`;
+  $('#pane').innerHTML = `
+    <h2 style="font-family:var(--head);text-transform:uppercase;font-size:1.3rem;margin-bottom:.6rem">1 · Quem vendeu? <button class="btn sm sec" id="newv" style="margin-left:.8rem">＋ Adicionar vendedor / squad</button></h2>
+    <div class="row r2">${col('L')}${col('H')}${col('V')}${col('SV')}</div>
+    <div class="card"><h2>2 · O que vendeu?</h2>
+      <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}</button>`).join('')}</div>
+      <div class="row r3" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
+      <div><label>Valor total da venda (R$) (opcional)</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
+      <div><label>Data e hora * <a href="#" id="agora" style="text-transform:none;letter-spacing:0;color:var(--yellow);margin-left:.6rem">preencher com agora</a></label><input id="dt" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="dd/mm/aaaa hh:mm" value="${esc(A.data || '')}"></div></div>
+      <div class="prev" id="prev">${previewVenda(C)}</div>
+      <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" disabled>Registrar venda</button>
+      <div class="help" id="falta" style="margin-top:.5rem;color:var(--yellow)"></div>
+      <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
+    <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
+  $('#newv').onclick = () => { A.tab = 'equipe'; renderAdm(); window.scrollTo(0, 0); };
+  $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
+  $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
+  $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
+  $('#dt').oninput = e => { A.data = maskDataHora(e.target.value); e.target.value = A.data; refreshReg(); };
+  $('#vl').oninput = e => { A.valor = e.target.value; $('#prev').innerHTML = previewVenda(C); refreshReg(); };
+  $('#agora').onclick = e => { e.preventDefault(); A.data = agoraBR(); $('#dt').value = A.data; refreshReg(); };
+  refreshReg();
+  $('#reg').onclick = async () => {
+    const q = Math.max(1, parseInt(A.qtd) || 1);
+    const falta = faltaVenda();
+    if (falta.length) { toast('Preencha: ' + falta.join(', ') + '.', true); return; }
+    const dataIso = parseDataHora(A.data);
+    $('#reg').disabled = true;
+    try {
+      await rpc('metas_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: (A.valor || '').trim() ? parseMoney(A.valor) : null});
+      const v = C.byId[A.sel];
+      toast('✅ ' + v.nome.split(' ')[0] + ': ' + q + '× ' + TIPOS[A.tipo].nome + ' registrada!');
+      A.tipo = null; A.qtd = 1; A.data = ''; A.valor = '';
+      await refresh(); syncSheet();
+    } catch (e) { toast(e.message, true); $('#reg').disabled = false; }
+  };
+  bindRowActions();
+}
+// obrigatórios: vendedor, produto e data/hora completas; valor é opcional (se preenchido, precisa ser > 0)
+function faltaVenda() {
+  const f = [];
+  if (!A.sel) f.push('vendedor');
+  if (!A.tipo) f.push('produto');
+  if ((A.valor || '').trim()) { const v = parseMoney(A.valor); if (v == null || v <= 0) f.push('valor válido (ou deixe em branco)'); }
+  if (!/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(A.data || '') || !parseDataHora(A.data)) f.push('data e hora (dd/mm/aaaa hh:mm)');
+  return f;
+}
+function refreshReg() {
+  const f = faltaVenda(), b = $('#reg'), m = $('#falta');
+  if (b) b.disabled = f.length > 0;
+  if (m) m.textContent = f.length ? 'Falta preencher: ' + f.join(', ') + '.' : '';
+}
+function lastRows(C, n) {
+  const all = histRows(C), rows = all.filter(r => !r.off).slice(0, n), canc = all.filter(r => r.off).length;
+  return (rows.map(r => r.html).join('') || '<div class="help">Nenhum lançamento ativo.</div>') + (canc ? `<div class="help" style="margin-top:.4rem">${canc} cancelada(s) — veja no Histórico.</div>` : '');
+}
+function histRows(C) {
+  const rows = [];
+  S.vendas.forEach(s => {
+    const v = C.byId[s.vendedor_id]; if (!v) return;
+    rows.push({t: s.criado_em, cargo: v.cargo, off: s.cancelada, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${SQ[v.cargo].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.valor ? ' · ' + fmtMoney(+s.valor) : ''}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`});
+  });
+  return rows.sort((a, b) => new Date(b.t) - new Date(a.t));
+}
+function bindRowActions() {
+  $('#pane').querySelectorAll('[data-cv]').forEach(b => b.onclick = async () => {
+    const cancel = b.dataset.st === '1';
+    if (cancel && !confirm('Cancelar esta venda? A contagem da semana será recalculada.')) return;
+    try { await rpc('metas_set_venda_cancelada', {p_pin: A.pin, p_id: b.dataset.cv, p_cancelada: cancel}); await refresh(); syncSheet(); } catch (e) { toast(e.message, true); }
+  });
+}
+
+function paneHist(C) {
+  $('#pane').innerHTML = `<div class="card"><h2>Histórico completo</h2>
+    <div class="row r3" style="margin-bottom:.8rem"><div><label>Filtrar squad</label><select id="ft"><option value="todos">Todos</option>${SQ_ORDER.map(k => `<option value="${k}" ${A.filtro === k ? 'selected' : ''}>${SQ[k].nome}</option>`).join('')}</select></div>
+    <div style="align-self:end"><button class="btn sec" id="csv">⬇ Baixar CSV</button></div><div style="align-self:end"><button class="btn sec" id="resync">↻ Reenviar tudo p/ planilha</button></div></div>
+    <div class="lst">${histRows(C).filter(r => A.filtro === 'todos' || r.cargo === A.filtro).map(r => r.html).join('') || '<div class="help">Vazio.</div>'}</div></div>`;
+  $('#ft').onchange = e => { A.filtro = e.target.value; renderAdm(); };
+  $('#csv').onclick = () => downloadCSV();
+  $('#resync').onclick = () => syncSheet(true);
+  bindRowActions();
+}
+
+function paneEquipe(C) {
+  const metaDe = k => (S.cfg.metas && S.cfg.metas[k]) || META_PADRAO[k];
+  const card = v => {
+    const id = v ? v.id : 'new';
+    const f = v && S.fotos[v.id];
+    const cargo = v ? v.cargo : 'H';
+    return `<div class="card ${v ? '' : 'newcard'}" data-e="${id}"><div class="ec"><div class="ph">${f ? `<img src="${f}">` : (v ? esc(v.nome[0]) : '+')}</div><div>
+      <div class="row r4"><div><label>Nome do vendedor</label><input data-f="nome" value="${esc(v ? v.nome : '')}" placeholder="${v ? '' : 'ex: Maria Silva'}"></div>
+      <div><label>Apelido (opcional)</label><input data-f="apelido" value="${esc(v ? v.apelido || '' : '')}"></div>
+      <div><label>Squad</label><select data-f="cargo">${SQ_ORDER.map(k => `<option value="${k}" ${cargo === k ? 'selected' : ''}>${SQ[k].nome}</option>`).join('')}</select></div>
+      <div><label>Meta semanal (vendas)</label><input data-f="meta" type="number" min="1" value="${v ? v.meta : metaDe(cargo)}"></div></div>
+      <div class="row r4"><div><label>Ativo</label><select data-f="ativo"><option value="true" ${!v || v.ativo ? 'selected' : ''}>Sim</option><option value="false" ${v && !v.ativo ? 'selected' : ''}>Não (some do telão)</option></select></div>
+      <div><label>Foto</label><input data-f="foto" type="file" accept="image/*"></div>
+      <div style="align-self:end;display:flex;gap:.4rem"><button class="btn sm" data-save="${id}">${v ? 'Salvar' : 'Adicionar vendedor'}</button>${f ? `<button class="btn sm sec" data-nof="${id}">Tirar foto</button>` : ''}</div></div></div></div></div>`;
+  };
+  $('#pane').innerHTML = `<h3 style="font-family:var(--head);text-transform:uppercase;margin:.2rem 0 .5rem;color:var(--yellow)">Novo vendedor</h3>${card(null)}
+    <p class="help" style="margin:.4rem 0 .8rem">Digite o nome, escolha o squad e a meta semanal já vem preenchida (Supervisor ${metaDe('L')}, Harpia ${metaDe('H')}, Vekta ${metaDe('V')}, Sem Vekta ${metaDe('SV')}). As fotos são reduzidas automaticamente.</p>
+    ${SQ_ORDER.map(k => `<h3 style="font-family:var(--head);text-transform:uppercase;margin:1rem 0 .5rem;color:${SQ[k].cor}">${SQ[k].nome}</h3>${S.vend.filter(v => v.cargo === k).map(card).join('') || '<p class="help">Ninguém neste squad.</p>'}`).join('')}`;
+  // meta acompanha o squad escolhido
+  $('#pane').querySelectorAll('[data-f=cargo]').forEach(sel => sel.onchange = () => { const box = sel.closest('[data-e]'); box.querySelector('[data-f=meta]').value = metaDe(sel.value); });
+  $('#pane').querySelectorAll('[data-save]').forEach(b => b.onclick = async () => {
+    const box = b.closest('[data-e]'), id = b.dataset.save, g = n => box.querySelector('[data-f=' + n + ']');
+    let foto = null; const file = g('foto').files[0];
+    try {
+      if (file) foto = await shrink(file, 520);
+      if (!g('nome').value.trim()) throw new Error('Informe o nome do vendedor');
+      await rpc('metas_upsert_vendedor', {p_pin: A.pin, p_id: id === 'new' ? null : id, p_nome: g('nome').value.trim(), p_apelido: g('apelido').value.trim() || null, p_cargo: g('cargo').value, p_meta: +g('meta').value || 1, p_foto: foto, p_ativo: g('ativo').value === 'true'});
+      toast(id === 'new' ? 'Vendedor adicionado!' : 'Salvo!'); await refresh(); syncSheet();
+    } catch (e) { toast(e.message, true); }
+  });
+  $('#pane').querySelectorAll('[data-nof]').forEach(b => b.onclick = async () => { try { await rpc('metas_clear_foto', {p_pin: A.pin, p_id: b.dataset.nof}); await refresh(); } catch (e) { toast(e.message, true); } });
+}
+
+function paneCfg(C) {
+  const cf = A.adminCfg || {webhook_url: '', semana_ancora: S.cfg.semana_ancora, metas: S.cfg.metas};
+  const m = cf.metas || META_PADRAO;
+  const dow = new Date(S.cfg.semana_ancora).toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo', weekday: 'long'});
+  $('#pane').innerHTML = `
+    <div class="card"><h2>Semana comercial</h2>
+      <label>Início de uma semana (use uma quarta-feira 00:00)</label><input id="an" type="datetime-local" value="${toLocalInput(S.cfg.semana_ancora)}" style="max-width:260px">
+      <p class="help" style="margin-top:.5rem">As semanas seguem de 7 em 7 dias a partir desta data, de quarta 00:00 a terça 23:59. A data atual salva cai numa <b>${esc(dow)}</b>.</p></div>
+    <div class="card"><h2>Metas semanais por squad (vendas de Hub, Imersão ou Performance)</h2>
+      <div class="row r4">${SQ_ORDER.map(k => `<div><label>${SQ[k].nome}</label><input data-m="${k}" type="number" min="1" value="${m[k] || META_PADRAO[k]}"></div>`).join('')}</div>
+      <p class="help" style="margin-top:.5rem">Ao salvar, <b>todos os vendedores do squad</b> passam a ter essa meta. Para uma meta diferente de uma pessoa, ajuste na aba Equipe (vale até a próxima vez que salvar aqui).</p></div>
+    <div class="card"><h2>Planilha online (Google Sheets)</h2>
+      <label>URL do Apps Script (termina em /exec)</label><input id="wh" value="${esc(cf.webhook_url || '')}" placeholder="https://script.google.com/macros/s/.../exec">
+      <p class="help" style="margin:.5rem 0">Cada venda lançada reescreve as abas <b>Placar da semana</b> e <b>Vendas</b> da planilha.</p>
+      <details><summary>Como ligar a planilha (1 minuto)</summary><ol class="help" style="margin:.6rem 0 .6rem 1.2rem">
+        <li>Crie uma planilha nova no Google Sheets.</li><li>Extensões → Apps Script → apague o código e cole o script abaixo → Salvar.</li>
+        <li>Implantar → Nova implantação → Tipo: <b>App da Web</b> → Executar como: <b>Eu</b> → Acesso: <b>Qualquer pessoa</b> → Implantar (autorize quando pedir).</li><li>Copie a URL que termina em <code>/exec</code>, cole acima e salve. Depois clique em “Reenviar tudo”.</li></ol>
+        <button class="btn sm sec" id="cpgs">Copiar script</button></details></div>
+    <button class="btn" id="svc" style="font-size:1.2rem;padding:.8rem 2rem">Salvar configurações</button>
+    <button class="btn sec" id="rs2" style="margin-left:.6rem">↻ Reenviar tudo p/ planilha</button>`;
+  $('#cpgs').onclick = () => { navigator.clipboard.writeText(GS_CODE).then(() => toast('Script copiado!')); };
+  $('#rs2').onclick = () => syncSheet(true);
+  $('#svc').onclick = async () => {
+    try {
+      const metas = {}; document.querySelectorAll('[data-m]').forEach(i => { metas[i.dataset.m] = Math.max(1, parseInt(i.value) || META_PADRAO[i.dataset.m]); });
+      await rpc('metas_set_config', {p_pin: A.pin, p_ancora: fromLocalInput($('#an').value), p_metas: metas, p_webhook: $('#wh').value.trim()});
+      A.adminCfg = await rpc('metas_get_admin_config', {p_pin: A.pin});
+      toast('Configurações salvas'); await refresh(); syncSheet();
+    } catch (e) { toast(e.message, true); }
+  };
+}
+
+/* ------- planilha ------- */
+function buildPayload() {
+  const C = calc(), f = d => fmtBR(d, {day: '2-digit', month: '2-digit'});
+  const placar = [['Squad', 'Vendedor', 'Vendas na semana', 'Meta', '% da meta', 'Hub', 'Imersão', 'Performance', 'Valor (R$)']];
+  SQ_ORDER.forEach(k => C.Q[k].vend.forEach(ss => placar.push([SQ[k].nome, ss.v.nome, ss.sem, ss.v.meta, Math.round(ss.sem / ss.v.meta * 100) + '%', ss.hub, ss.imersao, ss.performance, ss.valor || ''])));
+  placar.push([]); placar.push(['Semana', f(C.rg.start) + ' a ' + f(C.rg.end)]); placar.push(['Atualizado em', fmtBR(new Date().toISOString(), {dateStyle: 'short', timeStyle: 'medium'})]);
+  const vendas = [['Data/Hora', 'Squad', 'Vendedor', 'Produto', 'Qtd', 'Valor (R$)', 'Status', 'Lançado por', 'ID']];
+  S.vendas.slice().sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em)).forEach(s => { const v = C.byId[s.vendedor_id]; if (v) vendas.push([fmtBR(s.criado_em, {dateStyle: 'short', timeStyle: 'short'}), SQ[v.cargo].nome, v.nome, TIPOS[s.tipo].nome, s.qtd, s.valor != null ? +s.valor : '', s.cancelada ? 'CANCELADA' : 'ok', s.lancado_por || '', s.id]); });
+  return {'Placar da semana': placar, 'Vendas': vendas};
+}
+async function syncSheet(manual) {
+  try { A.adminCfg = await rpc('metas_get_admin_config', {p_pin: A.pin}); } catch (e) {}
+  const url = A.adminCfg && A.adminCfg.webhook_url;
+  if (!url) { if (manual) toast('Configure a URL da planilha em Config', true); return; }
+  try {
+    await fetch(url, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(buildPayload())});
+    A.saved = '📊 planilha atualizada ' + new Date().toLocaleTimeString('pt-BR'); const m = $('#syncmsg'); if (m) m.textContent = A.saved;
+    if (manual) toast('📊 Enviado para a planilha');
+  } catch (e) { toast('Falha ao enviar para a planilha', true); }
+}
+function downloadCSV() {
+  const p = buildPayload();
+  const toCsv = rows => rows.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(';')).join('\n');
+  const blob = new Blob(['﻿' + toCsv(p['Placar da semana']) + '\n\n' + toCsv(p['Vendas'])], {type: 'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'metas-aguias.csv'; a.click();
+}
+
+/* ================= BOOT ================= */
+function boot() {
+  let flag = false; try { flag = sessionStorage.getItem('metas_admin') === '1'; } catch (e) {}
+  const isAdm = location.hash.startsWith('#admin') || /[?&]admin/.test(location.search) || (flag && /access_token|error_description/.test(location.hash));
+  if (isAdm) { document.body.classList.add('adm'); initAdm(); } else initTV();
+}
+boot();
+</script>
+</body>
+</html>
