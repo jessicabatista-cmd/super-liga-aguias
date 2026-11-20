@@ -173,6 +173,8 @@ label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.1e
 details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-transform:uppercase;letter-spacing:.06em}
 .sync{font-size:.8rem;opacity:.8}
 .newcard{border:2px solid var(--yellow)}
+.card.over{outline:3px dashed var(--yellow);outline-offset:-3px;background:#4a4968}
+.sb[draggable=true]{cursor:grab}
 </style>
 </head>
 <body>
@@ -698,9 +700,10 @@ function previewVenda(C) {
   return `<b>${esc(v.nome)}</b> (${SQ[v.cargo].nome}) · ${q}× ${TIPOS[A.tipo].nome}. Semana: ${ss.sem}/${v.meta} → <b>${nw}/${v.meta}</b>${ss.sem < v.meta && nw >= v.meta ? ' <b style="color:var(--yellow)">· META BATIDA! 🎯</b>' : ''}${val ? `<br>💰 <b>${fmtMoney(val)}</b>` : ''}`;
 }
 function paneVenda(C) {
-  const col = k => `<div class="card"><h2 style="color:${SQ[k].cor}">${SQ[k].nome}</h2><div class="sellers">${S.vend.filter(v => v.cargo === k && v.ativo).map(v => sellerBtn(v, C)).join('') || '<span class="help">Ninguém neste squad.</span>'}</div></div>`;
+  const col = k => `<div class="card" data-sqdrop="${k}"><h2 style="color:${SQ[k].cor}">${SQ[k].nome}</h2><div class="sellers">${S.vend.filter(v => v.cargo === k && v.ativo).map(v => sellerBtn(v, C)).join('') || '<span class="help">Ninguém neste squad.</span>'}</div></div>`;
   $('#pane').innerHTML = `
     <h2 style="font-family:var(--head);text-transform:uppercase;font-size:1.3rem;margin-bottom:.6rem">1 · Quem vendeu? <button class="btn sm sec" id="newv" style="margin-left:.8rem">＋ Adicionar vendedor / squad</button></h2>
+    <p class="help" style="margin:-.2rem 0 .6rem">Dica: arraste o nome de um squad para outro para mudar o vendedor de squad (a meta passa a ser a do novo squad).</p>
     <div class="row r2">${col('L')}${col('H')}${col('V')}${col('SV')}</div>
     <div class="card"><h2>2 · O que vendeu?</h2>
       <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}</button>`).join('')}</div>
@@ -714,6 +717,22 @@ function paneVenda(C) {
     <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
   $('#newv').onclick = () => { A.tab = 'equipe'; renderAdm(); window.scrollTo(0, 0); };
   $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
+  // arrastar o nome de um squad para outro muda o squad (e a meta passa a ser a do novo squad)
+  $('#pane').querySelectorAll('.sb').forEach(b => { b.draggable = true; b.ondragstart = e => { e.dataTransfer.setData('text/plain', b.dataset.v); e.dataTransfer.effectAllowed = 'move'; }; });
+  $('#pane').querySelectorAll('[data-sqdrop]').forEach(z => {
+    z.ondragover = e => { e.preventDefault(); z.classList.add('over'); };
+    z.ondragleave = e => { if (!z.contains(e.relatedTarget)) z.classList.remove('over'); };
+    z.ondrop = async e => {
+      e.preventDefault(); z.classList.remove('over');
+      const v = C.byId[e.dataTransfer.getData('text/plain')], k = z.dataset.sqdrop;
+      if (!v || v.cargo === k) return;
+      const meta = (S.cfg.metas && S.cfg.metas[k]) || META_PADRAO[k];
+      try {
+        await rpc('metas_upsert_vendedor', {p_pin: A.pin, p_id: v.id, p_nome: v.nome, p_apelido: v.apelido || null, p_cargo: k, p_meta: meta, p_foto: null, p_ativo: v.ativo});
+        toast('↔ ' + v.nome.split(' ')[0] + ' agora é ' + SQ[k].nome + ' (meta ' + meta + ')'); await refresh(); syncSheet();
+      } catch (err) { toast(err.message, true); }
+    };
+  });
   $('#pane').querySelectorAll('.tp').forEach(b => b.onclick = () => { A.tipo = b.dataset.tp; renderAdm(); });
   $('#qtd').oninput = e => { A.qtd = e.target.value; $('#prev').innerHTML = previewVenda(C); };
   $('#dt').oninput = e => { A.data = maskDataHora(e.target.value); e.target.value = A.data; refreshReg(); };
@@ -794,7 +813,7 @@ function paneEquipe(C) {
       <div><label>Meta semanal (vendas)</label><input data-f="meta" type="number" min="1" value="${v ? v.meta : metaDe(cargo)}"></div></div>
       <div class="row r4"><div><label>Ativo</label><select data-f="ativo"><option value="true" ${!v || v.ativo ? 'selected' : ''}>Sim</option><option value="false" ${v && !v.ativo ? 'selected' : ''}>Não (some do telão)</option></select></div>
       <div><label>Foto</label><input data-f="foto" type="file" accept="image/*"></div>
-      <div style="align-self:end;display:flex;gap:.4rem"><button class="btn sm" data-save="${id}">${v ? 'Salvar' : 'Adicionar vendedor'}</button>${f ? `<button class="btn sm sec" data-nof="${id}">Tirar foto</button>` : ''}</div></div></div></div></div>`;
+      <div style="align-self:end;display:flex;gap:.4rem"><button class="btn sm" data-save="${id}">${v ? 'Salvar' : 'Adicionar vendedor'}</button>${f ? `<button class="btn sm sec" data-nof="${id}">Tirar foto</button>` : ''}${v ? `<button class="btn sm red" data-del="${id}">Excluir</button>` : ''}</div></div></div></div></div>`;
   };
   $('#pane').innerHTML = `<h3 style="font-family:var(--head);text-transform:uppercase;margin:.2rem 0 .5rem;color:var(--yellow)">Novo vendedor</h3>${card(null)}
     <p class="help" style="margin:.4rem 0 .8rem">Digite o nome, escolha o squad e a meta semanal já vem preenchida (Supervisor ${metaDe('L')}, Harpia ${metaDe('H')}, Vekta ${metaDe('V')}, Sem Vekta ${metaDe('SV')}). As fotos são reduzidas automaticamente.</p>
@@ -812,6 +831,11 @@ function paneEquipe(C) {
     } catch (e) { toast(e.message, true); }
   });
   $('#pane').querySelectorAll('[data-nof]').forEach(b => b.onclick = async () => { try { await rpc('metas_clear_foto', {p_pin: A.pin, p_id: b.dataset.nof}); await refresh(); } catch (e) { toast(e.message, true); } });
+  $('#pane').querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const v = C.byId[b.dataset.del], n = S.vendas.filter(s => s.vendedor_id === v.id).length;
+const aviso = n ? ' As ' + n + ' venda(s) lançada(s) por essa pessoa também serão apagadas e a contagem do time muda.' : '';    if (!confirm('Excluir ' + v.nome + ' de vez?' + aviso + ' Não dá para desfazer. Se só quer tirar do telão, use Ativo = Não.')) return;
+    try { await rpc('metas_delete_vendedor', {p_pin: A.pin, p_id: v.id}); toast('Vendedor excluído'); await refresh(); syncSheet(); } catch (e) { toast(e.message, true); }
+  });
 }
 
 function paneCfg(C) {
