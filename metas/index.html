@@ -700,7 +700,8 @@ function previewVenda(C) {
   return `<b>${esc(v.nome)}</b> (${SQ[v.cargo].nome}) · ${q}× ${TIPOS[A.tipo].nome}. Semana: ${ss.sem}/${v.meta} → <b>${nw}/${v.meta}</b>${ss.sem < v.meta && nw >= v.meta ? ' <b style="color:var(--yellow)">· META BATIDA! 🎯</b>' : ''}${val ? `<br>💰 <b>${fmtMoney(val)}</b>` : ''}`;
 }
 function paneVenda(C) {
-  const col = k => `<div class="card" data-sqdrop="${k}"><h2 style="color:${SQ[k].cor}">${SQ[k].nome}</h2><div class="sellers">${S.vend.filter(v => v.cargo === k && v.ativo).map(v => sellerBtn(v, C)).join('') || '<span class="help">Ninguém neste squad.</span>'}</div></div>`;
+  const col = k => `<div class="card" data-sqdrop="${k}"><h2 style="color:${SQ[k].cor}">${SQ[k].nome}</h2><div class="sellers">${S.vend.filter(v => v.cargo === k && v.ativo).map(v => sellerBtn(v, C)).join('') || '<span class="help">Ninguém neste squad.</span>'}</div>
+    <div style="display:flex;gap:.4rem;margin-top:.7rem"><input data-nn="${k}" placeholder="＋ Novo vendedor em ${SQ[k].nome}" style="flex:1;min-width:0"><button class="btn sm" data-na="${k}">Adicionar</button></div></div>`;
   $('#pane').innerHTML = `
     <h2 style="font-family:var(--head);text-transform:uppercase;font-size:1.3rem;margin-bottom:.6rem">1 · Quem vendeu? <button class="btn sm sec" id="newv" style="margin-left:.8rem">＋ Adicionar vendedor / squad</button></h2>
     <p class="help" style="margin:-.2rem 0 .6rem">Dica: arraste o nome de um squad para outro para mudar o vendedor de squad (a meta passa a ser a do novo squad).</p>
@@ -717,6 +718,18 @@ function paneVenda(C) {
     <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
   $('#newv').onclick = () => { A.tab = 'equipe'; renderAdm(); window.scrollTo(0, 0); };
   $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
+  // criar vendedor direto no card do squad
+  const addNovo = async k => {
+    const inp = $('#pane').querySelector('[data-nn=' + k + ']'), nome = inp.value.trim();
+    if (!nome) { toast('Digite o nome do novo vendedor', true); inp.focus(); return; }
+    const meta = (S.cfg.metas && S.cfg.metas[k]) || META_PADRAO[k];
+    try {
+      await rpc('metas_upsert_vendedor', {p_pin: A.pin, p_id: null, p_nome: nome, p_apelido: null, p_cargo: k, p_meta: meta, p_foto: null, p_ativo: true});
+      toast('✅ ' + nome.split(' ')[0] + ' adicionado em ' + SQ[k].nome + ' (meta ' + meta + ')'); await refresh(); syncSheet();
+    } catch (err) { toast(err.message, true); }
+  };
+  $('#pane').querySelectorAll('[data-na]').forEach(b => b.onclick = () => addNovo(b.dataset.na));
+  $('#pane').querySelectorAll('[data-nn]').forEach(i => i.onkeydown = e => { if (e.key === 'Enter') addNovo(i.dataset.nn); });
   // arrastar o nome de um squad para outro muda o squad (e a meta passa a ser a do novo squad)
   $('#pane').querySelectorAll('.sb').forEach(b => { b.draggable = true; b.ondragstart = e => { e.dataTransfer.setData('text/plain', b.dataset.v); e.dataTransfer.effectAllowed = 'move'; }; });
   $('#pane').querySelectorAll('[data-sqdrop]').forEach(z => {
