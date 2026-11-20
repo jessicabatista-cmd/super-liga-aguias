@@ -175,6 +175,64 @@ details summary{cursor:pointer;color:var(--yellow);font-family:var(--head);text-
 .newcard{border:2px solid var(--yellow)}
 .card.over{outline:3px dashed var(--yellow);outline-offset:-3px;background:#4a4968}
 .sb[draggable=true]{cursor:grab}
+
+/* =================== TEMA PRONIX (escuro refinado) ===================
+   preto liso, texto claro, amarelo só como acento, linhas finas, sem brilhos nem cantos cortados */
+:root{--line:rgba(255,255,255,.2);--line-s:rgba(255,255,255,.12)}
+body{background:#0b0b0b}
+#tv{background:#0b0b0b}
+#tv::before{opacity:.07;mix-blend-mode:normal;filter:grayscale(1)}
+#tv::after{display:none}
+.brand img.mk{height:5.2rem;animation:none;filter:none}
+.brand h1{font-size:4.8rem;letter-spacing:.005em}
+.brand h1 em{color:var(--yellow)}
+.brand p{letter-spacing:.34em;opacity:.65}
+.clock{background:transparent;color:var(--bone);clip-path:none;border:1px solid var(--line);border-left:.35rem solid var(--yellow);padding:.5rem 2.2rem .5rem 1.6rem}
+.clock .big{color:var(--yellow);font-size:5.2rem}
+.clock .lbl{color:var(--bone);font-size:1.6rem}
+.clock .hms{opacity:.65}
+.sumbar{background:transparent;border:1px solid var(--line);border-left:.35rem solid var(--yellow)}
+.sumbar .pct{text-shadow:none}
+.tbar .track{height:.7rem;background:var(--line-s)}
+.tbar .track i{background:var(--yellow)}
+.chip{background:transparent;border:1px solid var(--line);border-left:.28rem solid var(--yellow)}
+.sq{background:rgba(255,255,255,.025);border:1px solid var(--line);border-top:.3rem solid var(--yellow);clip-path:none;box-shadow:none}
+.sq .hd h2{color:var(--bone);letter-spacing:.03em}
+.sq .hd small{opacity:.6}
+.sq .hd .tot{color:var(--yellow)}
+.sq .sqbar{height:.4rem;background:var(--line-s)}
+.sq .sqbar i{background:var(--yellow)}
+.rows{gap:0}
+.rw{background:transparent;border-bottom:1px solid var(--line-s);padding:.3rem .2rem .3rem 0}
+.rw:last-child{border-bottom:none}
+.rw .av{background:transparent;border:1px solid rgba(255,255,255,.35);padding:0;clip-path:none}
+.rw .av>div,.rw .av>img{clip-path:none;background:transparent;color:var(--yellow)}
+.rw .bar{height:.5rem;background:var(--line-s)}
+.rw .bar i{background:rgba(255,255,255,.85)}
+.rw.hit .bar i{background:var(--yellow);animation:none}
+.rw.hit .av{border-color:var(--yellow)}
+.bottom{border:1px solid var(--line)}
+.bottom .lab{background:transparent;color:var(--yellow);clip-path:none;border-left:.35rem solid var(--yellow);margin-right:0;min-width:15rem;padding:0 1.6rem}
+.bottom .panel{background:transparent;border-left:1px solid var(--line)}
+.dot{background:var(--yellow)}
+#evt{background:rgba(8,8,8,.94);border-top:2px solid var(--yellow);border-bottom:2px solid var(--yellow)}
+#evt .k{color:var(--bone);text-shadow:none}
+#evt .s .val{text-shadow:none}
+.flash{background:#fff}
+@keyframes fl{0%{opacity:.14}100%{opacity:0}}
+/* painel ADM */
+body.adm{background:#0b0b0b}
+.card{background:rgba(255,255,255,.04);border:1px solid var(--line);clip-path:none}
+.tabs{border-bottom:1px solid var(--line)}
+input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
+.sb,.tp{background:transparent;border:1px solid rgba(255,255,255,.28)}
+.sb.on,.tp.on{border-color:var(--yellow);background:rgba(255,200,0,.1)}
+.scb{background:transparent;border:1px solid var(--line);border-left:.3rem solid var(--yellow)}
+.li{background:rgba(255,255,255,.04)}
+.prev{background:rgba(255,255,255,.04)}
+.badge{background:#2a2a2a;color:var(--yellow)}
+.newcard{border:1px solid var(--yellow)}
+.card.over{background:rgba(255,200,0,.08)}
 </style>
 </head>
 <body>
@@ -257,9 +315,9 @@ const HDR = {apikey: KEY, Authorization: 'Bearer ' + KEY};
 // squads (o código do cargo é o que fica gravado no banco)
 const SQ = {
   L:  {nome: 'Supervisor', cor: '#ffc800'},
-  H:  {nome: 'Harpia',     cor: '#b58cff'},
-  V:  {nome: 'Vekta',      cor: '#35e07c'},
-  SV: {nome: 'Sem Vekta',  cor: '#ffffff'}
+  H:  {nome: 'Harpia',     cor: '#ffc800'},
+  V:  {nome: 'Vekta',      cor: '#ffc800'},
+  SV: {nome: 'Sem Vekta',  cor: '#ffc800'}
 };
 const SQ_ORDER = ['L', 'H', 'V', 'SV'];
 const TIPOS = {hub: {nome: 'Hub'}, imersao: {nome: 'Imersão'}, performance: {nome: 'Performance'}};
@@ -421,7 +479,7 @@ function fxInit() {
   fx.cv = $('#fx'); fx.cx = fx.cv.getContext('2d');
   const rs = () => { fitStage(); fx.cv.width = STAGE.w; fx.cv.height = STAGE.h; };
   rs(); addEventListener('resize', rs);
-  for (let i = 0; i < 60; i++) fx.embers.push(ember(true));
+  // (sem brasas de fundo no visual Pronix)
   (function loop() {
     const c = fx.cx, W = fx.cv.width, Hh = fx.cv.height;
     c.clearRect(0, 0, W, Hh);
