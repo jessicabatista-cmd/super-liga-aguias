@@ -233,6 +233,17 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .badge{background:#2a2a2a;color:var(--yellow)}
 .newcard{border:1px solid var(--yellow)}
 .card.over{background:rgba(255,200,0,.08)}
+/* cor de cada squad: só em detalhes (linha do topo, título, barras, iniciais) */
+.sq{border-top-color:var(--c);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 9%,transparent),rgba(255,255,255,.02) 45%)}
+.sq .hd h2,.sq .hd .tot{color:var(--c)}
+.sq .sqbar i{background:var(--c)}
+.rw .av{border-color:color-mix(in srgb,var(--c) 55%,transparent)}
+.rw .av>div{color:var(--c)}
+.rw .bar i,.rw.hit .bar i{background:var(--c)}
+.rw.hit .nm,.rw.hit .ct{color:var(--c)}
+.rw.hit .av{border-color:var(--c)}
+#evt .k{color:var(--evc,var(--bone))}
+#evt .s .lbl{color:var(--evc,var(--yellow))}
 </style>
 </head>
 <body>
@@ -315,9 +326,9 @@ const HDR = {apikey: KEY, Authorization: 'Bearer ' + KEY};
 // squads (o código do cargo é o que fica gravado no banco)
 const SQ = {
   L:  {nome: 'Supervisor', cor: '#ffc800'},
-  H:  {nome: 'Harpia',     cor: '#ffc800'},
-  V:  {nome: 'Vekta',      cor: '#ffc800'},
-  SV: {nome: 'Sem Vekta',  cor: '#ffc800'}
+  H:  {nome: 'Harpia',     cor: '#b58cff'},
+  V:  {nome: 'Vekta',      cor: '#35e07c'},
+  SV: {nome: 'Sem Vekta',  cor: '#ffffff'}
 };
 const SQ_ORDER = ['L', 'H', 'V', 'SV'];
 const TIPOS = {hub: {nome: 'Hub'}, imersao: {nome: 'Imersão'}, performance: {nome: 'Performance'}};
