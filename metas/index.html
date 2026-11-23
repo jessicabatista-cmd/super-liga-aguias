@@ -247,6 +247,7 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .rw.hit .av{border-color:var(--c)}
 #evt .k{color:var(--evc,var(--bone))}
 #evt .s .lbl{color:var(--evc,var(--yellow))}
+.rw .prod{font-size:1.15rem;letter-spacing:.01em;margin-top:.3rem;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;font-family:var(--head);font-weight:500}
 /* Harpias = squad elite: coluna maior, foto do squad de fundo e destaque dourado */
 .squads{grid-template-columns:repeat(4,1fr)}
 #sq-H{background:linear-gradient(180deg,rgba(8,8,8,.82) 0%,rgba(8,8,8,.5) 26%,rgba(8,8,8,.58) 62%,rgba(8,8,8,.86) 100%),url(assets/harpias.jpg) 50% 40%/cover no-repeat;
@@ -350,6 +351,16 @@ const SQ = {
 };
 const SQ_ORDER = ['L', 'H', 'V', 'SV'];
 const TIPOS = {hub: {nome: 'Hub'}, imersao: {nome: 'Imersão'}, performance: {nome: 'Performance'}};
+// Hub e Imersão: todos os squads. Performance: só Supervisores (L) e Harpias (H).
+const TIPOS_SQ = {L: ['hub', 'imersao', 'performance'], H: ['hub', 'imersao', 'performance'], V: ['hub', 'imersao'], SV: ['hub', 'imersao']};
+const podeVender = (cargo, tipo) => (TIPOS_SQ[cargo] || ['hub', 'imersao']).includes(tipo);
+const PLURAL = {hub: ['Hub', 'Hubs'], imersao: ['Imersão', 'Imersões'], performance: ['Performance', 'Performances']};
+const prodTxt = ss => {
+  const ts = ['hub', 'imersao', 'performance'].filter(t => ss[t] > 0);
+  const mk = curto => ts.map(t => ss[t] + ' ' + (curto && t === 'performance' ? 'Perf.' : PLURAL[t][ss[t] > 1 ? 1 : 0])).join(' · ');
+  const full = mk(false);
+  return full.length > 26 ? mk(true) : full; // com os três produtos o texto abrevia Performance para caber
+};
 const META_PADRAO = {L: 6, H: 5, V: 4, SV: 1};
 const POLL_MS = 4000;
 const WEEK = 7 * 86400000; // semana comercial: de quarta 00:00 a terça 23:59:59
@@ -606,7 +617,7 @@ function renderTV(initial) {
       const v = ss.v, pc = Math.min(100, Math.round(ss.sem / v.meta * 100)), foto = S.fotos[v.id];
       const ini = v.nome.split(' ').map(x => x[0]).slice(0, 2).join('');
       return `<div class="rw ${ss.sem >= v.meta ? 'hit' : ''}"><div class="av">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
-        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div></div>
+        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod">${prodTxt(ss) || '—'}</div></div>
         <div class="ct">${ss.sem}<i>/${v.meta}</i>${ss.sem >= v.meta ? ' ✅' : ''}</div></div>`;
     }).join('') || '<div style="opacity:.5;padding:1rem">Ninguém neste squad.</div>';
     return `<article class="sq" id="sq-${k}" style="--c:${sq.cor}">
@@ -794,7 +805,8 @@ function paneVenda(C) {
     <p class="help" style="margin:-.2rem 0 .6rem">Dica: arraste o nome de um squad para outro para mudar o vendedor de squad (a meta passa a ser a do novo squad).</p>
     <div class="row r2">${col('L')}${col('H')}${col('V')}${col('SV')}</div>
     <div class="card"><h2>2 · O que vendeu?</h2>
-      <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}">${t.nome}</button>`).join('')}</div>
+      <div class="tipos">${Object.entries(TIPOS).map(([k, t]) => { const ok = !A.sel || podeVender(C.byId[A.sel].cargo, k); return `<button class="tp ${A.tipo === k ? 'on' : ''}" data-tp="${k}" ${ok ? '' : 'disabled title="Disponível só para Supervisores e Harpias"'} style="${ok ? '' : 'opacity:.3;cursor:not-allowed'}">${t.nome}</button>`; }).join('')}</div>
+      <p class="help" style="margin-top:.4rem">Hub e Imersão: todos os squads. Performance: só Supervisores e Harpias.</p>
       <div class="row r3" style="margin-top:.6rem"><div><label>Quantidade</label><input id="qtd" type="number" min="1" value="${A.qtd}"></div>
       <div><label>Valor total da venda (R$) (opcional)</label><input id="vl" inputmode="decimal" placeholder="ex: 12000 ou 12.000,50" value="${esc(A.valor || '')}"></div>
       <div><label>Data e hora * <a href="#" id="agora" style="text-transform:none;letter-spacing:0;color:var(--yellow);margin-left:.6rem">preencher com agora</a></label><input id="dt" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="dd/mm/aaaa hh:mm" value="${esc(A.data || '')}"></div></div>
@@ -804,7 +816,7 @@ function paneVenda(C) {
       <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
     <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
   $('#newv').onclick = () => { A.tab = 'equipe'; renderAdm(); window.scrollTo(0, 0); };
-  $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; renderAdm(); });
+  $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; if (A.tipo && !podeVender(C.byId[A.sel].cargo, A.tipo)) A.tipo = null; renderAdm(); });
   // criar vendedor direto no card do squad
   const addNovo = async k => {
     const inp = $('#pane').querySelector('[data-nn=' + k + ']'), nome = inp.value.trim();
@@ -860,6 +872,7 @@ function faltaVenda() {
   const f = [];
   if (!A.sel) f.push('vendedor');
   if (!A.tipo) f.push('produto');
+  else if (A.sel) { const v = S.vend.find(x => x.id === A.sel); if (v && !podeVender(v.cargo, A.tipo)) f.push('produto permitido para este squad (Performance é só de Supervisores e Harpias)'); }
   if ((A.valor || '').trim()) { const v = parseMoney(A.valor); if (v == null || v <= 0) f.push('valor válido (ou deixe em branco)'); }
   if (!/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(A.data || '') || !parseDataHora(A.data)) f.push('data e hora (dd/mm/aaaa hh:mm)');
   return f;
