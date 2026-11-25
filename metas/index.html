@@ -289,6 +289,7 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .stz{flex:none;display:inline-flex;align-items:center;gap:.12rem;line-height:1;font-size:1.9rem;margin-block:-.4rem}
 .stz i{font-style:normal;display:block;line-height:1;color:rgba(255,255,255,.16)}
 .stz i.on{color:#e9e4d8;text-shadow:0 0 .5rem rgba(255,255,255,.35)}
+.stz i.half{color:transparent;background:linear-gradient(90deg,#e9e4d8 50%,rgba(255,255,255,.16) 50%);-webkit-background-clip:text;background-clip:text;text-shadow:none}
 .stz i.g{color:#ffc800;font-size:1.3em;text-shadow:0 0 .7rem rgba(255,200,0,.95),0 0 1.5rem rgba(255,150,0,.65)}
 .stz em{font-style:normal;font-family:var(--head);font-weight:700;font-size:1.5rem;color:#ffc800;margin:0 .3rem 0 .05rem}
 /* total de estrelas: pequeno e à ESQUERDA das estrelas, longe do contador de vendas da direita */
@@ -549,9 +550,12 @@ function calcEstrelas() {
   }
   S.vend.forEach(v => { const o = out[v.id]; for (let n = n0; n <= n1; n++) { const hit = (tot[v.id + '|' + n] || 0) >= v.meta; o.sem.push({n, hit}); if (hit) o.auto++; } });
   ((S.estr && S.estr.ajustes) || []).forEach(x => { if (out[x.vendedor_id]) out[x.vendedor_id].extra += x.delta; });
-  Object.values(out).forEach(o => o.total = Math.max(0, o.auto + o.extra));
+  Object.values(out).forEach(o => { o.extra = Math.round(o.extra * 2) / 2; o.total = Math.max(0, Math.round((o.auto + o.extra) * 2) / 2); });   // meia estrela: de 0,5 em 0,5
   return out;
 }
+// "6,5" em vez de "6.5"; 0,5 vira "0,5"
+function fmtEst(n) { return String(Math.round(n * 10) / 10).replace('.', ','); }
+function textoBonus(d) { return d === 0.5 ? 'meia estrela' : (d === 1 ? '1 estrela' : fmtEst(d) + ' estrelas'); }
 // VAGAS DA IMERSÃO: ocupadas = número acertado no ADM + cadeiras de Imersão lançadas depois (cancelar tira de volta)
 function vagasInfo() {
   const cf = S.vagas; if (!cf) return null;
@@ -560,11 +564,12 @@ function vagasInfo() {
 }
 // desenho das estrelas: até 4 estrelas prata; a 5ª vira uma estrela dourada (cada dourada vale 5); passa de 3 douradas vira "★ ×N"; o número é o total
 function estrelasHtml(t) {
-  const g = Math.floor(t / 5), r = t % 5;
+  const g = Math.floor(t / 5), r = t - g * 5, rf = Math.floor(r), meia = r - rf >= 0.5;   // meia = tem meia estrela sobrando
   const gold = g === 0 ? '' : (g <= 3 ? '<i class="g">★</i>'.repeat(g) : `<i class="g">★</i><em>×${g}</em>`);
-  // sem douradas: 4 casinhas (as vazias mostram o que falta); com douradas: só as prata ganhas, para caber na linha
-  const reg = Array.from({length: g > 0 ? r : 4}, (_, i) => `<i class="${i < r ? 'on' : ''}">★</i>`).join('');
-  return `<span class="stz" title="${t} estrela${t === 1 ? '' : 's'}"><b class="${t ? '' : 'z'}">${t}</b>${gold}${reg}</span>`;
+  // sem douradas: 4 casinhas (as vazias mostram o que falta); com douradas: só as prata ganhas (a meia aparece pela metade)
+  const slots = g > 0 ? rf + (meia ? 1 : 0) : Math.max(4, rf + (meia ? 1 : 0));
+  const reg = Array.from({length: slots}, (_, i) => `<i class="${i < rf ? 'on' : (i === rf && meia ? 'on half' : '')}">★</i>`).join('');
+  return `<span class="stz" title="${fmtEst(t)} estrela${t === 1 ? '' : 's'}"><b class="${t ? '' : 'z'}">${fmtEst(t)}</b>${gold}${reg}</span>`;
 }
 function calc(rg) {
   rg = rg || weekRange();
@@ -768,7 +773,7 @@ function renderTV(initial) {
     ((S.estr && S.estr.ajustes) || []).slice().reverse().forEach(a => {
       if (TV.seenAj.has(a.id)) return; TV.seenAj.add(a.id);
       const v = byId[a.vendedor_id]; if (!v || !v.ativo || a.delta <= 0) return;
-      ev.push({kind: 'meta', cargo: v.cargo, who: nomeCurto(v), txt: 'ganhou ' + a.delta + (a.delta > 1 ? ' estrelas' : ' estrela') + ' de bônus', est: EST[v.id] ? EST[v.id].total : 0});
+      ev.push({kind: 'meta', cargo: v.cargo, who: nomeCurto(v), txt: 'ganhou ' + textoBonus(a.delta) + ' de bônus', est: EST[v.id] ? EST[v.id].total : 0});
     });
     S.vendas.slice().reverse().forEach(s => {
       if (TV.seenV.has(s.id)) return; TV.seenV.add(s.id);
@@ -851,7 +856,7 @@ function runQueue() {
   $('#evm').textContent = isMeta ? '⭐' : '💰';
   $('#evk').textContent = e.who;
   $('#evs').innerHTML = isMeta
-    ? `<span class="lbl">Estrela conquistada · ${esc(sqn)}</span>${esc(e.txt)}${e.est > 0 ? `<span class="val">★ ${e.est}</span>` : ''}`
+    ? `<span class="lbl">Estrela conquistada · ${esc(sqn)}</span>${esc(e.txt)}${e.est > 0 ? `<span class="val">★ ${fmtEst(e.est)}</span>` : ''}`
     : `<span class="lbl">Nova venda · ${esc(sqn)}</span>${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}`;
   root.classList.add('on');
   const fl = $('#flash'); fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on');
@@ -1149,7 +1154,7 @@ function renderAdm(soft) {
 
 function sellerBtn(v, C) {
   const ss = C.SS[v.id], e = A.est && A.est[v.id];
-  return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${ss.sem >= v.meta ? 'done' : ''}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}${e && e.total ? ` <b style="color:var(--yellow)">★${e.total}</b>` : ''}<br><small>${ss.sem}/${v.meta} na semana${ss.sem >= v.meta ? ' ✅' : ''}</small></span></button>`;
+  return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${ss.sem >= v.meta ? 'done' : ''}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}${e && e.total ? ` <b style="color:var(--yellow)">★${fmtEst(e.total)}</b>` : ''}<br><small>${ss.sem}/${v.meta} na semana${ss.sem >= v.meta ? ' ✅' : ''}</small></span></button>`;
 }
 function previewVenda(C) {
   if (!A.sel || !A.tipo) return 'Escolha o vendedor e o produto vendido.';
@@ -1289,18 +1294,21 @@ function paneEstrelas(C, host) {
   (host || $('#pane')).innerHTML = `
     <div class="card"><h2>⭐ Estrelas por semana batida</h2>
       <p class="help" style="margin-bottom:.6rem">Cada semana comercial em que o vendedor bate a meta vale <b>1 estrela</b>. A conta é automática a partir de <b>${ini ? fmtBR(ini, {day: '2-digit', month: '2-digit', year: 'numeric'}) : '—'}</b>, e a semana em andamento já conta assim que a meta é batida. A meta usada é a atual de cada vendedor.</p>
-      <div class="lst">${ativos.map(v => { const e = E[v.id]; return `<div class="li"><span class="g"><b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} <small style="opacity:.6">· ${e.sem.map(w => w.hit ? '★' : '·').join(' ') || 'sem semanas'}</small></span>${estrelasHtml(e.total)}<small style="opacity:.6;margin-left:.7rem">${e.auto} por semanas${e.extra ? ' · ' + (e.extra > 0 ? '+' : '') + e.extra + ' de ajuste' : ''}</small></div>`; }).join('') || '<div class="help">Nenhum vendedor ativo.</div>'}</div></div>
+      <div class="lst">${ativos.map(v => { const e = E[v.id]; return `<div class="li"><span class="g"><b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} <small style="opacity:.6">· ${e.sem.map(w => w.hit ? '★' : '·').join(' ') || 'sem semanas'}</small></span>${estrelasHtml(e.total)}<small style="opacity:.6;margin-left:.7rem">${e.auto} por semanas${e.extra ? ' · ' + (e.extra > 0 ? '+' : '') + fmtEst(e.extra) + ' de ajuste' : ''}</small></div>`; }).join('') || '<div class="help">Nenhum vendedor ativo.</div>'}</div></div>
     <div class="card"><h2>Ajuste manual</h2>
       <div class="row r3"><div><label>Vendedor</label><select id="ev">${ativos.map(v => `<option value="${v.id}">${esc(v.nome)}</option>`).join('')}</select></div>
-      <div><label>Estrelas (negativo tira)</label><input id="ed" type="number" step="1" min="-20" max="20" value="1"></div>
+      <div><label>Estrelas (0,5 = meia · negativo tira)</label><input id="ed" type="number" step="0.5" min="-20" max="20" value="1">
+        <div style="display:flex;gap:.4rem;margin-top:.4rem;flex-wrap:wrap">${[[0.5, '+ ½'], [1, '+ 1'], [-0.5, '− ½'], [-1, '− 1']].map(([v, l]) => `<button class="btn sm sec" type="button" data-q="${v}">${l}</button>`).join('')}</div></div>
       <div><label>Motivo (opcional)</label><input id="em" maxlength="200" placeholder="ex.: bônus da campanha"></div></div>
       <button class="btn" id="eaj" style="margin-top:.7rem">Aplicar ajuste</button>
-      <div class="lst" style="margin-top:.8rem">${aj.map(x => `<div class="li"><span class="t">${fmtBR(x.criado_em)}</span><span class="g"><b>${esc(nomeDe(x.vendedor_id))}</b> · ${x.delta > 0 ? '+' : ''}${x.delta} ★${x.motivo ? ' — ' + esc(x.motivo) : ''}${x.lancado_por ? ` <small style="opacity:.55">· por ${esc(x.lancado_por.split(' ')[0])}</small>` : ''}</span><button class="btn sm red" data-ra="${x.id}" type="button">Remover</button></div>`).join('') || '<div class="help">Nenhum ajuste manual.</div>'}</div></div>
+      <div class="lst" style="margin-top:.8rem">${aj.map(x => `<div class="li"><span class="t">${fmtBR(x.criado_em)}</span><span class="g"><b>${esc(nomeDe(x.vendedor_id))}</b> · ${x.delta > 0 ? '+' : ''}${fmtEst(x.delta)} ★${x.motivo ? ' — ' + esc(x.motivo) : ''}${x.lancado_por ? ` <small style="opacity:.55">· por ${esc(x.lancado_por.split(' ')[0])}</small>` : ''}</span><button class="btn sm red" data-ra="${x.id}" type="button">Remover</button></div>`).join('') || '<div class="help">Nenhum ajuste manual.</div>'}</div></div>
     <div class="card"><h2>Início da contagem</h2>
       <label>Data (use o começo de uma semana comercial, quarta 00:00)</label><input id="ei" type="datetime-local" value="${ini ? toLocalInput(ini) : ''}" style="max-width:260px">
       <button class="btn sm sec" id="eis" style="margin-left:.6rem" type="button">Salvar início</button></div>`;
+  $('#pane').querySelectorAll('[data-q]').forEach(b => b.onclick = () => { $('#ed').value = b.dataset.q; });
   $('#eaj').onclick = async () => {
-    const d = parseInt($('#ed').value, 10); if (!d) { toast('Informe quantas estrelas (diferente de zero).', true); return; }
+    const d = parseFloat(String($('#ed').value).replace(',', '.'));
+    if (!d || Math.abs(d) > 20 || Math.abs(d * 2 - Math.round(d * 2)) > 1e-9) { toast('Informe as estrelas de 0,5 em 0,5 (ex.: 0,5 ou 1,5), diferente de zero.', true); return; }
     try { await rpc('metas_estrelas_ajustar', {p_pin: A.pin, p_vendedor: $('#ev').value, p_delta: d, p_motivo: $('#em').value}); toast('★ Ajuste aplicado'); await refresh(); } catch (e) { toast(e.message, true); }
   };
   $('#pane').querySelectorAll('[data-ra]').forEach(b => b.onclick = async () => {
