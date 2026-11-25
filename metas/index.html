@@ -969,7 +969,7 @@ async function abrirRoleta(vendaId, nome, tipo) {
   $('#rltR').classList.add('hide'); $('#rlt').classList.remove('hide');
   $('#rltGo').disabled = true; $('#rltGo').textContent = 'GIRAR';
   try {
-    if (!RLT.itens) RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem');
+    try { RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem'); } catch (e) { if (!RLT.itens) throw e; }   // sempre os prêmios atuais do banco
     RLT.lista = RLT.itens.filter(i => i.roleta === r); RLT.rot = -Math.PI / 2; rltDesenha();
     $('#rltGo').disabled = false;
   } catch (e) { toast('Não consegui carregar a roleta: ' + e.message, true); }
@@ -1023,7 +1023,7 @@ async function tvRoletaProx() {
   TVR.busy = true;
   const g = TVR.fila.shift(), box = $('#rtv'), cv = $('#rtvC'), wait = ms => new Promise(ok => setTimeout(ok, ms));
   try {
-    if (!RLT.itens) RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem');
+    try { RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem'); } catch (e) { if (!RLT.itens) throw e; }   // sempre os prêmios atuais do banco
     let s = S.vendas.find(x => x.id === g.venda_id);
     if (!s) { const r = await api('metas_vendas?select=*&id=eq.' + g.venda_id); s = r[0]; }
     const v = s ? S.vend.find(x => x.id === s.vendedor_id) : null, byId = {}; RLT.itens.forEach(i => byId[i.id] = i);
