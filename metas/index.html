@@ -269,10 +269,12 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 #sq-SV .rw{background:rgba(0,0,0,.42)}
 #sq-SV .rw .nm{text-shadow:0 .1rem .4rem rgba(0,0,0,.9)}
 /* estrelas por semana batida */
-.rw .nm{display:flex;align-items:baseline;gap:.7rem;min-width:0}
-.rw .nm .n{overflow:hidden;text-overflow:ellipsis;min-width:0}
-.stz{flex:none;font-family:var(--head);font-weight:700;font-size:1.8rem;line-height:1;color:var(--yellow);white-space:nowrap}
-.stz i{font-style:normal;margin-right:.2rem;text-shadow:0 0 .7rem rgba(255,200,0,.65)}
+.rw .prod{display:flex;justify-content:space-between;align-items:center;gap:.8rem;opacity:1}
+.rw .prod .pt{opacity:.75;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.stz{flex:none;display:inline-flex;align-items:center;gap:.1rem;line-height:1;font-size:2rem;margin-top:-.3rem;margin-bottom:-.2rem}
+.stz i{font-style:normal;color:rgba(255,255,255,.16)}
+.stz i.on,.stz.on i{color:var(--yellow);text-shadow:0 0 .7rem rgba(255,200,0,.75)}
+.stz b{font-family:var(--head);font-weight:700;font-size:2.1rem;color:var(--yellow);margin-left:.3rem;letter-spacing:.01em}
 /* Roleta de prêmios/prendas (abre ao confirmar uma venda) */
 #rlt{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
 .rlt-box{width:min(94vw,760px);background:#14110c;border:1px solid rgba(255,200,0,.35);border-top:.3rem solid var(--yellow);border-radius:.6rem;padding:1.1rem 1.2rem 1.3rem;color:var(--bone)}
@@ -737,10 +739,12 @@ function renderTV(initial) {
     const EST = calcEstrelas();
     const rows = q.vend.map(ss => {
       const v = ss.v, pc = Math.min(100, Math.round(ss.sem / v.meta * 100)), foto = S.fotos[v.id];
-      const star = (EST[v.id] && EST[v.id].total) ? `<span class="stz"><i>★</i>${EST[v.id].total}</span>` : '';
+      // estrelas: 5 casinhas (acesas = ganhas); passando de 5 vira "★ N"
+      const tEst = EST[v.id] ? EST[v.id].total : 0;
+      const star = tEst > 5 ? `<span class="stz on"><i>★</i><b>${tEst}</b></span>` : `<span class="stz">${[0, 1, 2, 3, 4].map(i => `<i class="${i < tEst ? 'on' : ''}">★</i>`).join('')}</span>`;
       const ini = v.nome.split(' ').map(x => x[0]).slice(0, 2).join('');
       return `<div class="rw ${ss.sem >= v.meta ? 'hit' : ''}"><div class="av">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
-        <div class="mid"><div class="nm"><span class="n">${esc(v.nome)}</span>${star}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod">${prodTxt(ss) || '—'}</div></div>
+        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod"><span class="pt">${prodTxt(ss) || '—'}</span>${star}</div></div>
         <div class="ct">${ss.sem}<i>/${v.meta}</i>${ss.sem >= v.meta ? ' ✅' : ''}</div></div>`;
     }).join('') || '<div style="opacity:.5;padding:1rem">Ninguém neste squad.</div>';
     return `<article class="sq" id="sq-${k}" style="--c:${sq.cor}">
