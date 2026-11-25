@@ -301,6 +301,24 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .li .stz{font-size:1.15rem;margin:0}
 .li .stz em{font-size:1.1rem}
 .li .stz b{font-size:1.25rem}
+/* layout v2 do painel: título do squad mais alto e cada vendedor em 4 linhas (nome, barra, produto vendido, estrelas) */
+.sumbar{height:7.6rem}
+.sumbar .pct{font-size:5.2rem}
+.sq{padding:.55rem 1.2rem .8rem}
+.sq .hd{height:auto;margin-bottom:.3rem;align-items:flex-start}
+.sq .hd h2{font-size:2.8rem}
+.sq .hd .tot{align-self:flex-start;font-size:3rem}
+.sq .sqbar{margin-bottom:.35rem}
+.rw{flex:1 1 0;max-height:7.6rem;padding:.2rem .2rem .2rem 0}
+.rw .nm{font-size:1.75rem;line-height:1.1}
+.rw .bar{height:.6rem;margin-top:.15rem}
+.rw .prod{display:block;font-size:1.05rem;margin-top:.2rem;line-height:1.2;opacity:.8}
+.rw .prod .pt{opacity:1;display:block;overflow:hidden;text-overflow:ellipsis}
+.rw .stl{margin-top:.15rem;line-height:1;min-height:1.2rem}
+.stz{font-size:1.3rem;margin:0;padding-right:.2rem}
+.stz b{font-size:1.4rem}
+.stz.tight{font-size:1.15rem}
+.stz.tight b{font-size:1.25rem}
 /* Roleta de prêmios/prendas (abre ao confirmar uma venda) */
 #rlt{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
 .rlt-box{width:min(94vw,760px);background:#14110c;border:1px solid rgba(255,200,0,.35);border-top:.3rem solid var(--yellow);border-radius:.6rem;padding:1.1rem 1.2rem 1.3rem;color:var(--bone)}
@@ -808,7 +826,7 @@ function renderTV(initial) {
       const star = estrelasHtml(tEst);
       const ini = v.nome.split(' ').map(x => x[0]).slice(0, 2).join('');
       return `<div class="rw ${ss.sem >= v.meta ? 'hit' : ''}"><div class="av">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
-        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod"><span class="pt">${prodTxt(ss) || '—'}</span>${star}</div></div>
+        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod"><span class="pt">${prodTxt(ss) || '—'}</span></div><div class="stl">${star}</div></div>
         <div class="ct">${ss.sem}<i>/${v.meta}</i>${ss.sem >= v.meta ? ' ✅' : ''}</div></div>`;
     }).join('') || '<div style="opacity:.5;padding:1rem">Ninguém neste squad.</div>';
     return `<article class="sq" id="sq-${k}" style="--c:${sq.cor}">
