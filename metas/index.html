@@ -268,6 +268,25 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 #sq-SV .hd small{opacity:.9;text-shadow:0 .1rem .5rem rgba(0,0,0,.9)}
 #sq-SV .rw{background:rgba(0,0,0,.42)}
 #sq-SV .rw .nm{text-shadow:0 .1rem .4rem rgba(0,0,0,.9)}
+/* Roleta de prêmios/prendas (abre ao confirmar uma venda) */
+#rlt{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
+.rlt-box{width:min(94vw,760px);background:#14110c;border:1px solid rgba(255,200,0,.35);border-top:.3rem solid var(--yellow);border-radius:.6rem;padding:1.1rem 1.2rem 1.3rem;color:var(--bone)}
+.rlt-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.6rem}
+.rlt-tt{font-family:var(--head);font-weight:700;font-size:1.5rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.1}
+.rlt-tt small{display:block;font-family:var(--body,inherit);font-weight:500;font-size:.85rem;letter-spacing:.02em;text-transform:none;opacity:.7;margin-top:.25rem}
+.rlt-leg{display:flex;gap:1rem;justify-content:center;font-size:.85rem;margin-bottom:.4rem;opacity:.85}
+.rlt-leg i{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;margin-right:.35rem;vertical-align:-.1rem}
+.rlt-stage{position:relative;width:min(100%,560px);aspect-ratio:1;margin:0 auto}
+#rltC{width:100%;height:100%;display:block}
+.rlt-ptr{position:absolute;left:50%;top:-1%;width:9%;transform:translateX(-50%);filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+#rltGo{position:absolute;left:50%;top:50%;width:21%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:5px solid var(--yellow);background:#14110c;color:var(--yellow);font-family:var(--head);font-weight:700;font-size:clamp(.9rem,3.2vw,1.5rem);letter-spacing:.06em;cursor:pointer;box-shadow:0 0 0 6px rgba(0,0,0,.35)}
+#rltGo:hover:not(:disabled){background:var(--yellow);color:#14110c}
+#rltGo:disabled{opacity:.6;cursor:default}
+.rlt-res{margin:1rem auto 0;max-width:560px;text-align:center;padding:1rem 1.2rem;border:3px solid var(--rc,var(--yellow));border-radius:.6rem;background:rgba(255,255,255,.04)}
+.rlt-res .k{font-family:var(--head);letter-spacing:.2em;text-transform:uppercase;opacity:.8;font-size:.9rem}
+.rlt-res .v{font-family:var(--head);font-weight:700;font-size:1.9rem;line-height:1.1;text-transform:uppercase;color:var(--rc,var(--yellow));margin:.35rem 0}
+.rlt-res .n{font-size:.9rem;opacity:.75}
+.rlt-ent{margin-left:.6rem;font-size:.8rem;white-space:nowrap}
 .elite{display:inline-block;vertical-align:middle;margin-left:.8rem;font-size:1.15rem;letter-spacing:.2em;background:var(--yellow);color:#000;padding:.25rem .8rem .2rem;font-weight:700}
 </style>
 </head>
@@ -298,6 +317,18 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
   <div class="flash" id="flash"></div>
   <div id="evt"><span class="m" id="evm"></span><div class="k" id="evk"></div><div class="s" id="evs"></div></div>
 </div>
+
+<!-- ======= ROLETA (abre após confirmar uma venda) ======= -->
+<div id="rlt" class="hide"><div class="rlt-box">
+  <div class="rlt-top"><div class="rlt-tt" id="rltT"></div><button class="btn sec sm" id="rltX" type="button">Fechar</button></div>
+  <div class="rlt-leg"><span><i style="background:#ffc800"></i>Prêmio</span><span><i style="background:#e0533d"></i>Prenda</span></div>
+  <div class="rlt-stage">
+    <canvas id="rltC" width="1000" height="1000"></canvas>
+    <svg class="rlt-ptr" viewBox="0 0 60 80" aria-hidden="true"><path d="M30 78 L4 14 Q2 4 14 3 L46 3 Q58 4 56 14 Z" fill="#ffc800" stroke="#14110c" stroke-width="4" stroke-linejoin="round"/><circle cx="30" cy="20" r="6" fill="#14110c"/></svg>
+    <button id="rltGo" type="button">GIRAR</button>
+  </div>
+  <div class="rlt-res hide" id="rltR"></div>
+</div></div>
 
 <!-- ======= ADMIN ======= -->
 <div id="adm" class="hide"><div class="wrap" id="admroot"></div></div>
@@ -765,12 +796,94 @@ function deniedView(email) {
   $('#go').onclick = async () => { await SBC.auth.signOut(); loginView(); };
 }
 async function enterAdm() {
-  await loadAll(true);
+  await loadAll(true); await loadGiros();
   try { A.adminCfg = await rpc('metas_get_admin_config', {p_pin: A.pin}); } catch (e) {}
   renderAdm();
-  setInterval(async () => { if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return; try { await loadAll(false); renderAdm(true); } catch (e) {} }, 8000);
+  setInterval(async () => { if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return; if (!$('#rlt').classList.contains('hide')) return; try { await loadAll(false); await loadGiros(); renderAdm(true); } catch (e) {} }, 8000);
 }
-async function refresh() { await loadAll(true); renderAdm(); }
+async function refresh() { await loadAll(true); await loadGiros(); renderAdm(); }
+
+/* ================= ROLETA DE PRÊMIOS E PRENDAS ================= */
+// Roleta 1: venda de Performance. Roleta 2: venda de Imersão ou Hub (uma por venda, não por cadeira).
+// O sorteio acontece no banco (metas_roleta_girar); aqui só desenhamos e animamos.
+S.giros = [];
+async function loadGiros() {
+  try { S.giros = await api('metas_roleta_giros?select=id,venda_id,seq,entregue,item_id,metas_roleta_itens(texto,tipo,repete)&order=seq&limit=5000'); } catch (e) {}
+}
+const RLT = {itens: null, rot: -Math.PI / 2, busy: false, venda: null, nome: '', tipo: '', lista: [], ult: null};
+const RLT_COR = {premio: ['#ffc800', '#3fb984', '#ff9a3c', '#4ec3e0', '#c6f432'], prenda: ['#e0533d', '#8249da', '#d6489d', '#62608e', '#b3472f']};
+function giroFinal(vendaId) {
+  const g = (S.giros || []).filter(x => x.venda_id === vendaId).sort((a, b) => b.seq - a.seq)[0];
+  return g || null;
+}
+function roletaBadge(s) {
+  if (s.cancelada) return '';
+  const g = giroFinal(s.id);
+  const it = g && g.metas_roleta_itens;
+  if (!g) return ` <button class="btn sm sec" data-rg="${s.id}" type="button">🎰 Girar roleta</button>`;
+  if (it && it.repete) return ` <span class="badge" style="background:var(--indigo)">🔁 gire novamente</span> <button class="btn sm sec" data-rg="${s.id}" type="button">🎰 Girar de novo</button>`;
+  const cor = it && it.tipo === 'prenda' ? 'var(--err)' : 'var(--ok)';
+  return ` <span class="badge" style="background:${cor}">${it && it.tipo === 'prenda' ? '😈' : '🎁'} ${esc(it ? it.texto : '')}</span><label class="rlt-ent"><input type="checkbox" data-re="${g.id}" ${g.entregue ? 'checked' : ''}> entregue</label>`;
+}
+function rltDesenha() {
+  const c = $('#rltC'), x = c.getContext('2d'), L = RLT.lista, N = L.length || 1, A = Math.PI * 2 / N, R = 440;
+  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, 1000, 1000); x.translate(500, 500);
+  x.beginPath(); x.arc(0, 0, 492, 0, Math.PI * 2); x.fillStyle = '#1b1710'; x.fill(); x.lineWidth = 5; x.strokeStyle = '#ffc800'; x.stroke();
+  for (let b = 0; b < N * 2; b++) { const ba = RLT.rot + b * (Math.PI * 2 / (N * 2)); x.beginPath(); x.arc(Math.cos(ba) * 468, Math.sin(ba) * 468, 8, 0, 7); x.fillStyle = b % 2 ? '#fff' : '#ffc800'; x.fill(); }
+  const cont = {premio: 0, prenda: 0};
+  L.forEach((it, i) => {
+    const a0 = RLT.rot + i * A, k = cont[it.tipo]++, cor = RLT_COR[it.tipo][k % 5];
+    x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, a0, a0 + A); x.closePath(); x.fillStyle = cor; x.fill(); x.lineWidth = 3; x.strokeStyle = '#14110c'; x.stroke();
+    x.save(); x.rotate(a0 + A / 2); x.textAlign = 'right'; x.textBaseline = 'middle'; x.font = '800 30px Archivo, system-ui, sans-serif';
+    x.fillStyle = it.tipo === 'prenda' ? '#fff' : '#14110c';
+    const r = it.rotulo || [it.texto]; r.forEach((ln, j) => x.fillText(ln, R - 28, (j - (r.length - 1) / 2) * 34));
+    x.restore();
+  });
+  x.beginPath(); x.arc(0, 0, R, 0, Math.PI * 2); x.lineWidth = 6; x.strokeStyle = '#14110c'; x.stroke();
+  x.setTransform(1, 0, 0, 1, 0, 0);
+}
+async function abrirRoleta(vendaId, nome, tipo) {
+  RLT.venda = vendaId; RLT.nome = nome; RLT.tipo = tipo; RLT.busy = false; RLT.ult = null;
+  const r = tipo === 'performance' ? 1 : 2;
+  $('#rltT').innerHTML = `${esc(nome.split(' ')[0])} · ${esc(TIPOS[tipo].nome)}<small>Roleta ${r} · ${r === 1 ? 'venda de Performance' : 'venda de Imersão ou Hub'}</small>`;
+  $('#rltR').classList.add('hide'); $('#rlt').classList.remove('hide');
+  $('#rltGo').disabled = true; $('#rltGo').textContent = 'GIRAR';
+  try {
+    if (!RLT.itens) RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem');
+    RLT.lista = RLT.itens.filter(i => i.roleta === r); RLT.rot = -Math.PI / 2; rltDesenha();
+    $('#rltGo').disabled = false;
+  } catch (e) { toast('Não consegui carregar a roleta: ' + e.message, true); }
+}
+async function rltGirar() {
+  if (RLT.busy) return; RLT.busy = true; $('#rltGo').disabled = true; $('#rltR').classList.add('hide');
+  let g;
+  try { g = await rpc('metas_roleta_girar', {p_pin: A.pin, p_venda: RLT.venda}); }
+  catch (e) { toast(e.message, true); RLT.busy = false; $('#rltGo').disabled = false; return; }
+  const byId = {}; RLT.itens.forEach(i => byId[i.id] = i);
+  RLT.lista = g.slices.map(id => byId[id]).filter(Boolean);
+  const A_ = Math.PI * 2 / RLT.lista.length, pos = Math.max(0, g.slices.indexOf(g.item_id)), T = Math.PI * 2;
+  const cur = ((RLT.rot % T) + T) % T, tgt = ((-Math.PI / 2 - (pos + .5) * A_ + g.jitter * A_) % T + T) % T;
+  const delta = ((tgt - cur) % T + T) % T + T * g.turns, start = RLT.rot, dur = 6000; let t0 = null;
+  const frame = ts => {
+    if (t0 === null) t0 = ts;
+    const p = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+    RLT.rot = start + delta * e; rltDesenha();
+    if (p < 1) requestAnimationFrame(frame); else rltFim(g, byId[g.item_id]);
+  };
+  requestAnimationFrame(frame);
+}
+function rltFim(g, it) {
+  RLT.busy = false; RLT.ult = g;
+  const box = $('#rltR'), prenda = it.tipo === 'prenda';
+  box.style.setProperty('--rc', it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984'));
+  box.innerHTML = it.repete ? `<div class="k">🔁 Que sorte!</div><div class="v">${esc(it.texto)}</div><div class="n">Clique em GIRAR para a próxima rodada.</div>`
+    : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div><div class="v">${esc(it.texto)}</div><div class="n">${esc(RLT.nome.split(' ')[0])} · marque como entregue na lista de lançamentos quando cumprir.</div>`;
+  box.classList.remove('hide');
+  $('#rltGo').disabled = !it.repete; $('#rltGo').textContent = 'GIRAR';
+  refresh().catch(() => {});
+}
+function rltFecha() { if (RLT.busy) return; $('#rlt').classList.add('hide'); refresh().catch(() => {}); }
+document.addEventListener('DOMContentLoaded', () => { const go = $('#rltGo'), x = $('#rltX'); if (go) go.onclick = rltGirar; if (x) x.onclick = rltFecha; });
 
 function renderAdm(soft) {
   const root = $('#admroot');
@@ -864,11 +977,12 @@ function paneVenda(C) {
     const dataIso = parseDataHora(A.data);
     $('#reg').disabled = true;
     try {
-      await rpc('metas_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: (A.valor || '').trim() ? parseMoney(A.valor) : null});
-      const v = C.byId[A.sel];
+      const vendaId = await rpc('metas_add_venda', {p_pin: A.pin, p_vendedor: A.sel, p_tipo: A.tipo, p_qtd: q, p_data: dataIso, p_obs: null, p_valor: (A.valor || '').trim() ? parseMoney(A.valor) : null});
+      const v = C.byId[A.sel], tipoVendido = A.tipo;
       toast('✅ ' + v.nome.split(' ')[0] + ': ' + q + '× ' + TIPOS[A.tipo].nome + ' registrada!');
       A.tipo = null; A.qtd = 1; A.data = ''; A.valor = '';
       await refresh(); syncSheet();
+      abrirRoleta(vendaId, v.nome, tipoVendido); // venda confirmada: já abre a roleta certa para o vendedor
     } catch (e) { toast(e.message, true); $('#reg').disabled = false; }
   };
   bindRowActions();
@@ -896,11 +1010,18 @@ function histRows(C) {
   const rows = [];
   S.vendas.forEach(s => {
     const v = C.byId[s.vendedor_id]; if (!v) return;
-    rows.push({t: s.criado_em, cargo: v.cargo, off: s.cancelada, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${SQ[v.cargo].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.valor ? ' · ' + fmtMoney(+s.valor) : ''}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`});
+    rows.push({t: s.criado_em, cargo: v.cargo, off: s.cancelada, html: `<div class="li ${s.cancelada ? 'off' : ''}"><span class="t">${fmtBR(s.criado_em)}</span><span class="dot" style="background:${SQ[v.cargo].cor};width:10px;height:10px;border-radius:50%;display:inline-block"></span><span class="g">💰 <b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} · ${s.qtd}× ${TIPOS[s.tipo].nome}${s.valor ? ' · ' + fmtMoney(+s.valor) : ''}${s.lancado_por ? ` <small style="opacity:.55">· por ${esc(s.lancado_por.split(' ')[0])}</small>` : ''}${roletaBadge(s)}</span>${s.cancelada ? '<span class="badge" style="background:var(--err)">cancelada</span>' : ''}<button class="btn sm ${s.cancelada ? 'sec' : 'red'}" data-cv="${s.id}" data-st="${s.cancelada ? 0 : 1}">${s.cancelada ? 'Restaurar' : 'Cancelar'}</button></div>`});
   });
   return rows.sort((a, b) => new Date(b.t) - new Date(a.t));
 }
 function bindRowActions() {
+  $('#pane').querySelectorAll('[data-rg]').forEach(b => b.onclick = () => {
+    const s = S.vendas.find(x => x.id === b.dataset.rg); if (!s) return;
+    const v = S.vend.find(x => x.id === s.vendedor_id); abrirRoleta(s.id, v ? v.nome : '', s.tipo);
+  });
+  $('#pane').querySelectorAll('[data-re]').forEach(b => b.onchange = async () => {
+    try { await rpc('metas_roleta_entregue', {p_pin: A.pin, p_giro: b.dataset.re, p_val: b.checked}); await refresh(); } catch (e) { toast(e.message, true); b.checked = !b.checked; }
+  });
   $('#pane').querySelectorAll('[data-cv]').forEach(b => b.onclick = async () => {
     const cancel = b.dataset.st === '1';
     if (cancel && !confirm('Cancelar esta venda? A contagem da semana será recalculada.')) return;
