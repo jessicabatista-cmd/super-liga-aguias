@@ -286,15 +286,28 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .rlt-res .k{font-family:var(--head);letter-spacing:.2em;text-transform:uppercase;opacity:.8;font-size:.9rem}
 .rlt-res .v{font-family:var(--head);font-weight:700;font-size:1.9rem;line-height:1.1;text-transform:uppercase;color:var(--rc,var(--yellow));margin:.35rem 0}
 .rlt-res .n{font-size:.9rem;opacity:.75}
-/* versão do telão: maior, sem botões */
-#rlt.tv .rlt-box{width:min(94vw,92vh);padding:1.6vh 2vh 2vh}
-#rlt.tv .rlt-tt{font-size:min(5vh,3.4rem)}
-#rlt.tv .rlt-tt small{font-size:min(2.4vh,1.4rem)}
-#rlt.tv .rlt-leg{font-size:min(2.2vh,1.3rem)}
-#rlt.tv .rlt-stage{width:min(100%,64vh)}
-#rlt.tv #rltGo,#rlt.tv #rltX{display:none}
-#rlt.tv .rlt-res{max-width:min(100%,80vh);margin-top:1.4vh}
-#rlt.tv .rlt-res .v{font-size:min(4.6vh,3rem)}
+/* roleta em tela cheia no telão */
+#rtv{position:fixed;inset:0;z-index:70;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:center;gap:3vw;padding:3vh 4vw;opacity:0;transition:opacity .45s;
+  background:radial-gradient(ellipse 60% 70% at 72% 50%,rgba(255,200,0,.2),transparent 70%),radial-gradient(ellipse 50% 60% at 15% 90%,rgba(130,73,218,.22),transparent 70%),rgba(8,7,5,.96)}
+#rtv.on{opacity:1}
+#rtv .rtv-left{display:flex;flex-direction:column;gap:2.6vh;min-width:0}
+#rtv .rtv-tag{align-self:flex-start;background:var(--yellow);color:#000;font-family:var(--head);font-weight:700;font-size:2.6vh;letter-spacing:.22em;text-transform:uppercase;padding:.8vh 2.2vh .6vh;clip-path:polygon(1.2vh 0,100% 0,100% 100%,0 100%)}
+#rtv .rtv-who{display:flex;align-items:center;gap:3vh}
+#rtv .rtv-av{flex:none;width:21vh;height:21vh;background:var(--yellow);padding:.5vh;clip-path:polygon(2vh 0,100% 0,100% calc(100% - 2vh),calc(100% - 2vh) 100%,0 100%,0 2vh)}
+#rtv .rtv-av img,#rtv .rtv-av span{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;background:#17130d;color:var(--yellow);font-family:var(--head);font-weight:700;font-size:8vh;clip-path:polygon(1.6vh 0,100% 0,100% calc(100% - 1.6vh),calc(100% - 1.6vh) 100%,0 100%,0 1.6vh)}
+#rtv .rtv-nm{font-family:var(--head);font-weight:700;font-size:11vh;line-height:.95;text-transform:uppercase;letter-spacing:-.01em;text-shadow:0 0 3vh rgba(255,200,0,.35);overflow-wrap:anywhere}
+#rtv .rtv-prod{font-family:var(--head);font-weight:500;font-size:3.8vh;letter-spacing:.06em;text-transform:uppercase;margin-top:1vh;opacity:.9}
+#rtv .rtv-prod b{color:var(--yellow);font-weight:700}
+#rtv .rtv-st{font-family:var(--head);font-weight:700;font-size:5vh;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow);animation:rtvp 1s ease-in-out infinite}
+@keyframes rtvp{50%{opacity:.35}}
+#rtv .rtv-res{border-left:1.2vh solid var(--rc);padding:1vh 0 1vh 3vh;background:linear-gradient(90deg,rgba(255,255,255,.07),transparent);animation:rtvin .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes rtvin{from{transform:translateX(-4vw);opacity:0}to{transform:none;opacity:1}}
+#rtv .rtv-res .k{font-family:var(--head);font-weight:700;font-size:3.6vh;letter-spacing:.3em;text-transform:uppercase;color:var(--rc)}
+#rtv .rtv-res .v{font-family:var(--head);font-weight:700;font-size:8.6vh;line-height:1;text-transform:uppercase;margin-top:1.2vh;text-shadow:0 0 4vh var(--rc)}
+#rtv .rtv-wheel{position:relative;height:90vh;aspect-ratio:1;justify-self:center;max-width:100%}
+#rtvC{width:100%;height:100%;display:block;filter:drop-shadow(0 2vh 5vh rgba(0,0,0,.7))}
+#rtv .rtv-ptr{position:absolute;left:50%;top:-1.6%;width:9%;transform:translateX(-50%);filter:drop-shadow(0 .6vh .8vh rgba(0,0,0,.7))}
+#rtvFx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .rlt-ent{margin-left:.6rem;font-size:.8rem;white-space:nowrap}
 .elite{display:inline-block;vertical-align:middle;margin-left:.8rem;font-size:1.15rem;letter-spacing:.2em;background:var(--yellow);color:#000;padding:.25rem .8rem .2rem;font-weight:700}
 </style>
@@ -338,6 +351,21 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
   </div>
   <div class="rlt-res hide" id="rltR"></div>
 </div></div>
+
+<!-- ======= ROLETA EM TELA CHEIA (telão) ======= -->
+<div id="rtv" class="hide">
+  <div class="rtv-left">
+    <div class="rtv-tag" id="rtvTag"></div>
+    <div class="rtv-who"><div class="rtv-av" id="rtvAv"></div><div><div class="rtv-nm" id="rtvNm"></div><div class="rtv-prod" id="rtvProd"></div></div></div>
+    <div class="rtv-st" id="rtvSt">Girando…</div>
+    <div class="rtv-res hide" id="rtvRes"></div>
+  </div>
+  <div class="rtv-wheel">
+    <canvas id="rtvC" width="1200" height="1200"></canvas>
+    <svg class="rtv-ptr" viewBox="0 0 60 80" aria-hidden="true"><path d="M30 78 L4 14 Q2 4 14 3 L46 3 Q58 4 56 14 Z" fill="#ffc800" stroke="#14110c" stroke-width="4" stroke-linejoin="round"/><circle cx="30" cy="20" r="6" fill="#14110c"/></svg>
+  </div>
+  <canvas id="rtvFx"></canvas>
+</div>
 
 <!-- ======= ADMIN ======= -->
 <div id="adm" class="hide"><div class="wrap" id="admroot"></div></div>
@@ -820,7 +848,7 @@ S.giros = [];
 async function loadGiros() {
   try { S.giros = await api('metas_roleta_giros?select=id,venda_id,seq,entregue,item_id,metas_roleta_itens(texto,tipo,repete)&order=seq&limit=5000'); } catch (e) {}
 }
-const RLT = {itens: null, rot: -Math.PI / 2, busy: false, venda: null, nome: '', tipo: '', lista: [], ult: null};
+const RLT = {itens: null, rot: -Math.PI / 2, busy: false, venda: null, nome: '', tipo: '', lista: [], ult: null, dest: null};
 const RLT_COR = {premio: ['#ffc800', '#3fb984', '#ff9a3c', '#4ec3e0', '#c6f432'], prenda: ['#e0533d', '#8249da', '#d6489d', '#62608e', '#b3472f']};
 function giroFinal(vendaId) {
   const g = (S.giros || []).filter(x => x.venda_id === vendaId).sort((a, b) => b.seq - a.seq)[0];
@@ -833,27 +861,40 @@ function roletaBadge(s) {
   if (!g) return ` <button class="btn sm sec" data-rg="${s.id}" type="button">🎰 Girar roleta</button>`;
   if (it && it.repete) return ` <span class="badge" style="background:var(--indigo)">🔁 gire novamente</span> <button class="btn sm sec" data-rg="${s.id}" type="button">🎰 Girar de novo</button>`;
   const cor = it && it.tipo === 'prenda' ? 'var(--err)' : 'var(--ok)';
-  return ` <span class="badge" style="background:${cor}">${it && it.tipo === 'prenda' ? '😈' : '🎁'} ${esc(it ? it.texto : '')}</span><label class="rlt-ent"><input type="checkbox" data-re="${g.id}" ${g.entregue ? 'checked' : ''}> entregue</label>`;
+  return ` <span class="badge" style="background:${cor}">${it && it.tipo === 'prenda' ? '😈' : '🎁'} ${esc(it ? it.texto : '')}</span>`;
 }
-function rltDesenha() {
-  const c = $('#rltC'), x = c.getContext('2d'), L = RLT.lista, N = L.length || 1, A = Math.PI * 2 / N, R = 440;
-  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, 1000, 1000); x.translate(500, 500);
-  x.beginPath(); x.arc(0, 0, 492, 0, Math.PI * 2); x.fillStyle = '#1b1710'; x.fill(); x.lineWidth = 5; x.strokeStyle = '#ffc800'; x.stroke();
-  for (let b = 0; b < N * 2; b++) { const ba = RLT.rot + b * (Math.PI * 2 / (N * 2)); x.beginPath(); x.arc(Math.cos(ba) * 468, Math.sin(ba) * 468, 8, 0, 7); x.fillStyle = b % 2 ? '#fff' : '#ffc800'; x.fill(); }
-  const cont = {premio: 0, prenda: 0};
+function rltDesenha() { desenhaRoda($('#rltC'), RLT.lista, RLT.rot, RLT.dest); }
+// desenha a roda num canvas (coordenadas 1000×1000, qualquer resolução); destId escurece as fatias que não saíram
+function desenhaRoda(c, L, rot, destId) {
+  const x = c.getContext('2d'), N = L.length || 1, A = Math.PI * 2 / N, R = 440, k = c.width / 1000, T = Math.PI * 2;
+  x.setTransform(k, 0, 0, k, 500 * k, 500 * k); x.clearRect(-500, -500, 1000, 1000);
+  const ring = x.createRadialGradient(0, 0, 440, 0, 0, 496); ring.addColorStop(0, '#2c2519'); ring.addColorStop(1, '#0c0a07');
+  x.beginPath(); x.arc(0, 0, 496, 0, T); x.fillStyle = ring; x.fill(); x.lineWidth = 7; x.strokeStyle = '#ffc800'; x.stroke();
+  for (let b = 0; b < N * 2; b++) { const ba = rot + b * (T / (N * 2)); x.beginPath(); x.arc(Math.cos(ba) * 468, Math.sin(ba) * 468, 9, 0, T); x.fillStyle = b % 2 ? '#fff6d6' : '#ffc800'; x.fill(); }
+  const cont = {premio: 0, prenda: 0}, maxW = R - 30 - 135;
   L.forEach((it, i) => {
-    const a0 = RLT.rot + i * A, k = cont[it.tipo]++, cor = RLT_COR[it.tipo][k % 5];
-    x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, a0, a0 + A); x.closePath(); x.fillStyle = cor; x.fill(); x.lineWidth = 3; x.strokeStyle = '#14110c'; x.stroke();
-    x.save(); x.rotate(a0 + A / 2); x.textAlign = 'right'; x.textBaseline = 'middle'; x.font = '800 30px Archivo, system-ui, sans-serif';
+    const a0 = rot + i * A, n = cont[it.tipo]++, cor = RLT_COR[it.tipo][n % 5];
+    x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, a0, a0 + A); x.closePath(); x.fillStyle = cor; x.fill(); x.lineWidth = 4; x.strokeStyle = '#14110c'; x.stroke();
+    x.save(); x.rotate(a0 + A / 2); x.textAlign = 'right'; x.textBaseline = 'middle';
+    const r = it.rotulo || [it.texto]; let fs = 46; x.font = '800 ' + fs + 'px Archivo, system-ui, sans-serif';
+    const w = Math.max(...r.map(t => x.measureText(t).width)); if (w > maxW) { fs = Math.floor(fs * maxW / w); x.font = '800 ' + fs + 'px Archivo, system-ui, sans-serif'; }
     x.fillStyle = it.tipo === 'prenda' ? '#fff' : '#14110c';
-    const r = it.rotulo || [it.texto]; r.forEach((ln, j) => x.fillText(ln, R - 28, (j - (r.length - 1) / 2) * 34));
+    r.forEach((ln, j) => x.fillText(ln, R - 30, (j - (r.length - 1) / 2) * fs * 1.12));
     x.restore();
   });
-  x.beginPath(); x.arc(0, 0, R, 0, Math.PI * 2); x.lineWidth = 6; x.strokeStyle = '#14110c'; x.stroke();
+  if (destId) {
+    L.forEach((it, i) => { if (it.id === destId) return; const a0 = rot + i * A; x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, a0, a0 + A); x.closePath(); x.fillStyle = 'rgba(8,6,3,.68)'; x.fill(); });
+    const wi = L.findIndex(it => it.id === destId);
+    if (wi >= 0) { const a0 = rot + wi * A; x.save(); x.shadowColor = '#ffffff'; x.shadowBlur = 40; x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, a0, a0 + A); x.closePath(); x.lineWidth = 9; x.strokeStyle = '#ffffff'; x.stroke(); x.restore(); }
+  }
+  x.beginPath(); x.arc(0, 0, R, 0, T); x.lineWidth = 8; x.strokeStyle = '#14110c'; x.stroke();
+  const hub = x.createRadialGradient(0, 0, 10, 0, 0, 120); hub.addColorStop(0, '#2a2418'); hub.addColorStop(1, '#0c0a07');
+  x.beginPath(); x.arc(0, 0, 120, 0, T); x.fillStyle = hub; x.fill(); x.lineWidth = 9; x.strokeStyle = '#ffc800'; x.stroke();
+  x.fillStyle = '#ffc800'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '700 50px Oswald, Impact, sans-serif'; x.fillText('ÁGUIAS', 0, 4);
   x.setTransform(1, 0, 0, 1, 0, 0);
 }
 async function abrirRoleta(vendaId, nome, tipo) {
-  RLT.venda = vendaId; RLT.nome = nome; RLT.tipo = tipo; RLT.busy = false; RLT.ult = null;
+  RLT.venda = vendaId; RLT.nome = nome; RLT.tipo = tipo; RLT.busy = false; RLT.ult = null; RLT.dest = null;
   const r = tipo === 'performance' ? 1 : 2;
   $('#rltT').innerHTML = `${esc(nome.split(' ')[0])} · ${esc(TIPOS[tipo].nome)}<small>Roleta ${r} · ${r === 1 ? 'venda de Performance' : 'venda de Imersão ou Hub'}</small>`;
   $('#rltR').classList.add('hide'); $('#rlt').classList.remove('hide');
@@ -865,7 +906,7 @@ async function abrirRoleta(vendaId, nome, tipo) {
   } catch (e) { toast('Não consegui carregar a roleta: ' + e.message, true); }
 }
 async function rltGirar() {
-  if (RLT.busy) return; RLT.busy = true; $('#rltGo').disabled = true; $('#rltR').classList.add('hide');
+  if (RLT.busy) return; RLT.busy = true; RLT.dest = null; $('#rltGo').disabled = true; $('#rltR').classList.add('hide');
   let g;
   try { g = await rpc('metas_roleta_girar', {p_pin: A.pin, p_venda: RLT.venda}); }
   catch (e) { toast(e.message, true); RLT.busy = false; $('#rltGo').disabled = false; return; }
@@ -873,15 +914,18 @@ async function rltGirar() {
   rltAnima(g, byId, () => rltFim(g, byId[g.item_id]));
 }
 // anima a roda até o item sorteado (usado pela tela do ADM e pelo telão)
-function rltAnima(g, byId, fim) {
+function rltAnima(g, byId, fim, cv) {
+  cv = cv || $('#rltC');
   RLT.lista = g.slices.map(id => byId[id]).filter(Boolean);
-  const A_ = Math.PI * 2 / RLT.lista.length, pos = Math.max(0, g.slices.indexOf(g.item_id)), T = Math.PI * 2;
+  const N = RLT.lista.length, A_ = Math.PI * 2 / N, pos = Math.max(0, g.slices.indexOf(g.item_id)), T = Math.PI * 2;
   const cur = ((RLT.rot % T) + T) % T, tgt = ((-Math.PI / 2 - (pos + .5) * A_ + g.jitter * A_) % T + T) % T;
-  const delta = ((tgt - cur) % T + T) % T + T * g.turns, start = RLT.rot, dur = 6000; let t0 = null;
+  const delta = ((tgt - cur) % T + T) % T + T * g.turns, start = RLT.rot, dur = 6000; let t0 = null, last = -1;
   const frame = ts => {
     if (t0 === null) t0 = ts;
     const p = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - p, 4);
-    RLT.rot = start + delta * e; rltDesenha();
+    RLT.rot = start + delta * e; desenhaRoda(cv, RLT.lista, RLT.rot, null);
+    const idx = Math.floor((((-Math.PI / 2 - RLT.rot) % T) + T) % T / A_) % N;   // fatia sob o ponteiro: um "tique" a cada troca
+    if (idx !== last) { last = idx; try { tone(900, 0, .04, 'square', .05); } catch (e) {} }
     if (p < 1) requestAnimationFrame(frame); else fim();
   };
   requestAnimationFrame(frame);
@@ -908,33 +952,54 @@ async function tvRoletaPoll() {
 async function tvRoletaProx() {
   if (TVR.busy || !TVR.fila.length) return;
   TVR.busy = true;
-  const g = TVR.fila.shift(), box = $('#rlt');
+  const g = TVR.fila.shift(), box = $('#rtv'), cv = $('#rtvC'), wait = ms => new Promise(ok => setTimeout(ok, ms));
   try {
     if (!RLT.itens) RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem');
     let s = S.vendas.find(x => x.id === g.venda_id);
     if (!s) { const r = await api('metas_vendas?select=*&id=eq.' + g.venda_id); s = r[0]; }
     const v = s ? S.vend.find(x => x.id === s.vendedor_id) : null, byId = {}; RLT.itens.forEach(i => byId[i.id] = i);
-    const rr = (s && s.tipo === 'performance') ? 1 : 2, it = byId[g.item_id];
-    $('#rltT').innerHTML = `${esc(v ? v.nome.split(' ')[0] : '')} · ${esc(s ? TIPOS[s.tipo].nome : '')}<small>Roleta ${rr} · ${rr === 1 ? 'venda de Performance' : 'venda de Imersão ou Hub'}</small>`;
-    $('#rltR').classList.add('hide'); box.classList.add('tv'); box.classList.remove('hide');
-    RLT.lista = g.slices.map(id => byId[id]).filter(Boolean); rltDesenha();
-    await new Promise(ok => setTimeout(ok, 700));
-    await new Promise(ok => rltAnima(g, byId, ok));
-    const prenda = it.tipo === 'prenda', res = $('#rltR');
-    res.style.setProperty('--rc', it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984'));
-    res.innerHTML = it.repete ? `<div class="k">🔁 Que sorte!</div><div class="v">${esc(it.texto)}</div>` : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div><div class="v">${esc(it.texto)}</div>`;
+    const rr = (s && s.tipo === 'performance') ? 1 : 2, it = byId[g.item_id], foto = v && S.fotos[v.id];
+    const ini = v ? v.nome.split(' ').map(x => x[0]).slice(0, 2).join('') : '';
+    $('#rtvTag').textContent = 'Roleta ' + rr + ' · ' + (rr === 1 ? 'Venda de Performance' : 'Venda de Imersão ou Hub');
+    $('#rtvNm').textContent = v ? v.nome.split(' ')[0] : '';
+    $('#rtvProd').innerHTML = 'vendeu <b>' + esc(s ? TIPOS[s.tipo].nome : '') + '</b>';
+    $('#rtvAv').innerHTML = foto ? `<img src="${esc(foto)}" alt="">` : `<span>${esc(ini)}</span>`;
+    $('#rtvSt').classList.remove('hide'); $('#rtvRes').classList.add('hide');
+    RLT.lista = g.slices.map(id => byId[id]).filter(Boolean); RLT.rot = -Math.PI / 2; RLT.dest = null;
+    desenhaRoda(cv, RLT.lista, RLT.rot, null);
+    box.classList.remove('hide'); requestAnimationFrame(() => box.classList.add('on'));
+    try { tone(392, 0, .18, 'triangle', .1); tone(523, .16, .18, 'triangle', .1); tone(659, .32, .3, 'triangle', .1); } catch (e) {}
+    await wait(1400);
+    await new Promise(ok => rltAnima(g, byId, ok, cv));
+    RLT.dest = g.item_id; desenhaRoda(cv, RLT.lista, RLT.rot, g.item_id);
+    const prenda = it.tipo === 'prenda', cor = it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984');
+    $('#rtvSt').classList.add('hide');
+    const res = $('#rtvRes'); res.style.setProperty('--rc', cor);
+    res.innerHTML = `<div class="k">${it.repete ? '🔁 Que sorte!' : (prenda ? '😈 Prenda' : '🎁 Prêmio')}</div><div class="v">${esc(it.texto)}</div>`;
     res.classList.remove('hide');
-    await new Promise(ok => setTimeout(ok, it.repete ? 30000 : 10000));
-    if (!TVR.fila.length || !it.repete) { if (!TVR.fila.length) box.classList.add('hide'); }
-  } catch (e) { box.classList.add('hide'); }
+    try { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .12, .35, 'triangle', .13)); } catch (e) {}
+    rtvConfetti(it.repete ? ['#8249da', '#ffc800'] : (prenda ? ['#e0533d', '#8249da', '#ffc800'] : ['#ffc800', '#3fb984', '#fff6d6', '#ff9a3c']));
+    await wait(it.repete ? 30000 : 12000);
+    if (!TVR.fila.length) { box.classList.remove('on'); await wait(450); box.classList.add('hide'); }
+  } catch (e) { box.classList.remove('on'); box.classList.add('hide'); }
   TVR.busy = false; tvRoletaProx();
 }
+function rtvConfetti(cols) {
+  const c = $('#rtvFx'), x = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
+  const ps = []; for (let i = 0; i < 220; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, sp = 14 + Math.random() * 20; ps.push({x: c.width * (i % 2 ? .3 : .7), y: c.height * .9, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, w: 8 + Math.random() * 10, h: 5 + Math.random() * 8, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[i % cols.length]}); }
+  const t0 = performance.now();
+  (function step(now) {
+    const dt = now - t0; x.clearRect(0, 0, c.width, c.height);
+    ps.forEach(p => { p.vy += .45; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.globalAlpha = Math.max(0, 1 - dt / 4200); x.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); x.restore(); });
+    if (dt < 4200) requestAnimationFrame(step); else x.clearRect(0, 0, c.width, c.height);
+  })(t0);
+}
 function rltFim(g, it) {
-  RLT.busy = false; RLT.ult = g;
+  RLT.busy = false; RLT.ult = g; RLT.dest = g.item_id; rltDesenha();
   const box = $('#rltR'), prenda = it.tipo === 'prenda';
   box.style.setProperty('--rc', it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984'));
   box.innerHTML = it.repete ? `<div class="k">🔁 Que sorte!</div><div class="v">${esc(it.texto)}</div><div class="n">Clique em GIRAR para a próxima rodada.</div>`
-    : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div><div class="v">${esc(it.texto)}</div><div class="n">${esc(RLT.nome.split(' ')[0])} · marque como entregue na lista de lançamentos quando cumprir.</div>`;
+    : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div><div class="v">${esc(it.texto)}</div><div class="n">${esc(RLT.nome.split(' ')[0])}</div>`;
   box.classList.remove('hide');
   $('#rltGo').disabled = !it.repete; $('#rltGo').textContent = 'GIRAR';
   refresh().catch(() => {});
@@ -1075,9 +1140,6 @@ function bindRowActions() {
   $('#pane').querySelectorAll('[data-rg]').forEach(b => b.onclick = () => {
     const s = S.vendas.find(x => x.id === b.dataset.rg); if (!s) return;
     const v = S.vend.find(x => x.id === s.vendedor_id); abrirRoleta(s.id, v ? v.nome : '', s.tipo);
-  });
-  $('#pane').querySelectorAll('[data-re]').forEach(b => b.onchange = async () => {
-    try { await rpc('metas_roleta_entregue', {p_pin: A.pin, p_giro: b.dataset.re, p_val: b.checked}); await refresh(); } catch (e) { toast(e.message, true); b.checked = !b.checked; }
   });
   $('#pane').querySelectorAll('[data-cv]').forEach(b => b.onclick = async () => {
     const cancel = b.dataset.st === '1';
