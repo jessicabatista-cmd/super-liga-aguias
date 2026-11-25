@@ -573,7 +573,7 @@ function estrelasHtml(t) {
   const slots = g > 0 ? rf + (meia ? 1 : 0) : Math.max(4, rf + (meia ? 1 : 0));
   const reg = Array.from({length: slots}, (_, i) => `<i class="${i < rf ? 'on' : (i === rf && meia ? 'on half' : '')}">★</i>`).join('');
   const aperta = (g > 0 && slots >= 3) || fmtEst(t).length >= 4;   // linha cheia: estrelas e número um pouco menores
-  return `<span class="stz${aperta ? ' tight' : ''}" title="${fmtEst(t)} estrela${t === 1 ? '' : 's'}"><b class="${t ? '' : 'z'}">${fmtEst(t)}</b>${gold}${reg}</span>`;
+  return `<span class="stz${aperta ? ' tight' : ''}" title="${fmtEst(t)} estrela${t === 1 ? '' : 's'}">${t ? `<b>${fmtEst(t)}</b>` : ''}${gold}${reg}</span>`;   // sem estrelas: só as casinhas apagadas, sem um "0" ao lado do contador de vendas
 }
 function calc(rg) {
   rg = rg || weekRange();
