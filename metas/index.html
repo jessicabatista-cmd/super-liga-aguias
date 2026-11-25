@@ -272,16 +272,18 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .rw .prod{display:flex;justify-content:space-between;align-items:center;gap:.8rem;opacity:1}
 .rw .prod .pt{opacity:.75;min-width:0;overflow:hidden;text-overflow:ellipsis}
 /* estrelas: 4 casinhas (prata = ganhas); a 5ª vira UMA estrela dourada (vale 5); número = total */
-.stz{flex:none;display:inline-flex;align-items:center;gap:.1rem;line-height:1;font-size:2rem;margin-top:-.3rem;margin-bottom:-.2rem}
-.stz i{font-style:normal;color:rgba(255,255,255,.16)}
-.stz i.on{color:#e9e4d8;text-shadow:0 0 .5rem rgba(255,255,255,.35)}
-.stz i.g{color:#ffc800;font-size:1.3em;text-shadow:0 0 .7rem rgba(255,200,0,.95),0 0 1.5rem rgba(255,150,0,.65);margin-right:.05rem}
-.stz em{font-style:normal;font-family:var(--head);font-weight:700;font-size:1.5rem;color:#ffc800;margin:0 .35rem 0 .05rem}
-.stz b{font-family:var(--head);font-weight:700;font-size:2rem;color:#ffc800;margin-left:.55rem;letter-spacing:.01em;text-shadow:0 0 .6rem rgba(255,200,0,.5)}
+.stz{flex:none;display:inline-flex;align-items:center;gap:.22rem;line-height:1;margin-block:-.55rem}
+.stz .sv{width:1.55rem;height:1.55rem;flex:none;display:block;fill:rgba(255,255,255,.16)}
+.stz .sv.on{fill:#e9e4d8;filter:drop-shadow(0 0 .3rem rgba(255,255,255,.4))}
+.stz .sv.g{width:2.4rem;height:2.4rem;filter:drop-shadow(0 0 .55rem rgba(255,185,0,.9))}
+.stz em{font-style:normal;font-family:var(--head);font-weight:700;font-size:1.6rem;color:#ffc800;margin:0 .25rem 0 .02rem}
+.stz b{font-family:var(--head);font-weight:700;font-size:2.1rem;color:#ffc800;margin-left:.45rem;letter-spacing:.01em;text-shadow:0 0 .6rem rgba(255,200,0,.5);text-align:right}
 .stz b.z{color:#fff;opacity:.28;text-shadow:none}
-.li .stz{font-size:1.15rem;margin:0}
-.li .stz em{font-size:1.1rem}
-.li .stz b{font-size:1.25rem}
+.li .stz{margin-block:0}
+.li .stz .sv{width:1.2rem;height:1.2rem}
+.li .stz .sv.g{width:1.8rem;height:1.8rem}
+.li .stz em{font-size:1.15rem}
+.li .stz b{font-size:1.3rem}
 /* Roleta de prêmios/prendas (abre ao confirmar uma venda) */
 #rlt{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
 .rlt-box{width:min(94vw,760px);background:#14110c;border:1px solid rgba(255,200,0,.35);border-top:.3rem solid var(--yellow);border-radius:.6rem;padding:1.1rem 1.2rem 1.3rem;color:var(--bone)}
@@ -530,10 +532,14 @@ function calcEstrelas() {
   return out;
 }
 // desenho das estrelas: até 4 estrelas prata; a 5ª vira uma estrela dourada (cada dourada vale 5); passa de 3 douradas vira "★ ×N"; o número é o total
+const ESTRELA_PATH = 'M12 1.6l3.1 6.9 7.5.8-5.6 5.1 1.6 7.4L12 18l-6.6 3.8 1.6-7.4L1.4 9.3l7.5-.8z';
 function estrelasHtml(t) {
   const g = Math.floor(t / 5), r = t % 5;
-  const gold = g === 0 ? '' : (g <= 3 ? '<i class="g">★</i>'.repeat(g) : `<i class="g">★</i><em>×${g}</em>`);
-  const reg = [0, 1, 2, 3].map(i => `<i class="${i < r ? 'on' : ''}">★</i>`).join('');
+  // estrela dourada com o "5" dentro (vale 5 estrelas)
+  const ouro = `<svg class="sv g" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gst" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#ff9f1a"/></linearGradient></defs><path d="${ESTRELA_PATH}" fill="url(#gst)" stroke="#fff3b0" stroke-width=".7" stroke-linejoin="round"/><text x="12" y="15.2" text-anchor="middle" font-family="Oswald,Impact,sans-serif" font-weight="700" font-size="10" fill="#3a2500">5</text></svg>`;
+  const gold = g === 0 ? '' : (g <= 3 ? ouro.repeat(g) : ouro + `<em>×${g}</em>`);
+  // sem douradas: 4 casinhas (as vazias mostram o que falta); com douradas: só as prata ganhas, para caber na linha
+  const reg = Array.from({length: g > 0 ? r : 4}, (_, i) => `<svg class="sv${i < r ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ESTRELA_PATH}"/></svg>`).join('');
   return `<span class="stz" title="${t} estrela${t === 1 ? '' : 's'}">${gold}${reg}<b class="${t ? '' : 'z'}">${t}</b></span>`;
 }
 function calc(rg) {
