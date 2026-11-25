@@ -271,10 +271,17 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 /* estrelas por semana batida */
 .rw .prod{display:flex;justify-content:space-between;align-items:center;gap:.8rem;opacity:1}
 .rw .prod .pt{opacity:.75;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* estrelas: 4 casinhas (prata = ganhas); a 5ª vira UMA estrela dourada (vale 5); número = total */
 .stz{flex:none;display:inline-flex;align-items:center;gap:.1rem;line-height:1;font-size:2rem;margin-top:-.3rem;margin-bottom:-.2rem}
 .stz i{font-style:normal;color:rgba(255,255,255,.16)}
-.stz i.on,.stz.on i{color:var(--yellow);text-shadow:0 0 .7rem rgba(255,200,0,.75)}
-.stz b{font-family:var(--head);font-weight:700;font-size:2.1rem;color:var(--yellow);margin-left:.3rem;letter-spacing:.01em}
+.stz i.on{color:#e9e4d8;text-shadow:0 0 .5rem rgba(255,255,255,.35)}
+.stz i.g{color:#ffc800;font-size:1.3em;text-shadow:0 0 .7rem rgba(255,200,0,.95),0 0 1.5rem rgba(255,150,0,.65);margin-right:.05rem}
+.stz em{font-style:normal;font-family:var(--head);font-weight:700;font-size:1.5rem;color:#ffc800;margin:0 .35rem 0 .05rem}
+.stz b{font-family:var(--head);font-weight:700;font-size:2rem;color:#ffc800;margin-left:.55rem;letter-spacing:.01em;text-shadow:0 0 .6rem rgba(255,200,0,.5)}
+.stz b.z{color:#fff;opacity:.28;text-shadow:none}
+.li .stz{font-size:1.15rem;margin:0}
+.li .stz em{font-size:1.1rem}
+.li .stz b{font-size:1.25rem}
 /* Roleta de prêmios/prendas (abre ao confirmar uma venda) */
 #rlt{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto}
 .rlt-box{width:min(94vw,760px);background:#14110c;border:1px solid rgba(255,200,0,.35);border-top:.3rem solid var(--yellow);border-radius:.6rem;padding:1.1rem 1.2rem 1.3rem;color:var(--bone)}
@@ -522,6 +529,13 @@ function calcEstrelas() {
   Object.values(out).forEach(o => o.total = Math.max(0, o.auto + o.extra));
   return out;
 }
+// desenho das estrelas: até 4 estrelas prata; a 5ª vira uma estrela dourada (cada dourada vale 5); passa de 3 douradas vira "★ ×N"; o número é o total
+function estrelasHtml(t) {
+  const g = Math.floor(t / 5), r = t % 5;
+  const gold = g === 0 ? '' : (g <= 3 ? '<i class="g">★</i>'.repeat(g) : `<i class="g">★</i><em>×${g}</em>`);
+  const reg = [0, 1, 2, 3].map(i => `<i class="${i < r ? 'on' : ''}">★</i>`).join('');
+  return `<span class="stz" title="${t} estrela${t === 1 ? '' : 's'}">${gold}${reg}<b class="${t ? '' : 'z'}">${t}</b></span>`;
+}
 function calc(rg) {
   rg = rg || weekRange();
   const byId = {}; S.vend.forEach(v => byId[v.id] = v);
@@ -744,7 +758,7 @@ function renderTV(initial) {
       const v = ss.v, pc = Math.min(100, Math.round(ss.sem / v.meta * 100)), foto = S.fotos[v.id];
       // estrelas: 5 casinhas (acesas = ganhas); passando de 5 vira "★ N"
       const tEst = EST[v.id] ? EST[v.id].total : 0;
-      const star = tEst > 5 ? `<span class="stz on"><i>★</i><b>${tEst}</b></span>` : `<span class="stz">${[0, 1, 2, 3, 4].map(i => `<i class="${i < tEst ? 'on' : ''}">★</i>`).join('')}</span>`;
+      const star = estrelasHtml(tEst);
       const ini = v.nome.split(' ').map(x => x[0]).slice(0, 2).join('');
       return `<div class="rw ${ss.sem >= v.meta ? 'hit' : ''}"><div class="av">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
         <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod"><span class="pt">${prodTxt(ss) || '—'}</span>${star}</div></div>
@@ -1215,7 +1229,7 @@ function paneEstrelas(C, host) {
   (host || $('#pane')).innerHTML = `
     <div class="card"><h2>⭐ Estrelas por semana batida</h2>
       <p class="help" style="margin-bottom:.6rem">Cada semana comercial em que o vendedor bate a meta vale <b>1 estrela</b>. A conta é automática a partir de <b>${ini ? fmtBR(ini, {day: '2-digit', month: '2-digit', year: 'numeric'}) : '—'}</b>, e a semana em andamento já conta assim que a meta é batida. A meta usada é a atual de cada vendedor.</p>
-      <div class="lst">${ativos.map(v => { const e = E[v.id]; return `<div class="li"><span class="g"><b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} <small style="opacity:.6">· ${e.sem.map(w => w.hit ? '★' : '·').join(' ') || 'sem semanas'}</small></span><span class="badge" style="background:var(--yellow);color:#000">★ ${e.total}</span><small style="opacity:.6;margin-left:.5rem">${e.auto} por semanas${e.extra ? ' · ' + (e.extra > 0 ? '+' : '') + e.extra + ' de ajuste' : ''}</small></div>`; }).join('') || '<div class="help">Nenhum vendedor ativo.</div>'}</div></div>
+      <div class="lst">${ativos.map(v => { const e = E[v.id]; return `<div class="li"><span class="g"><b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} <small style="opacity:.6">· ${e.sem.map(w => w.hit ? '★' : '·').join(' ') || 'sem semanas'}</small></span>${estrelasHtml(e.total)}<small style="opacity:.6;margin-left:.7rem">${e.auto} por semanas${e.extra ? ' · ' + (e.extra > 0 ? '+' : '') + e.extra + ' de ajuste' : ''}</small></div>`; }).join('') || '<div class="help">Nenhum vendedor ativo.</div>'}</div></div>
     <div class="card"><h2>Ajuste manual</h2>
       <div class="row r3"><div><label>Vendedor</label><select id="ev">${ativos.map(v => `<option value="${v.id}">${esc(v.nome)}</option>`).join('')}</select></div>
       <div><label>Estrelas (negativo tira)</label><input id="ed" type="number" step="1" min="-20" max="20" value="1"></div>
