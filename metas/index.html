@@ -283,12 +283,15 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .vagas.cheio .vn,.vagas.cheio .vl{color:var(--yellow);animation:pulse 1.4s infinite}
 .vagas.cheio .vb i{background:var(--yellow)}
 /* estrelas por semana batida */
-.rw .prod{display:flex;justify-content:space-between;align-items:center;gap:.8rem;opacity:1}
+.rw .prod{display:flex;justify-content:space-between;align-items:center;gap:.8rem;opacity:1;overflow:visible}
 .rw .prod .pt{opacity:.75;min-width:0;overflow:hidden;text-overflow:ellipsis}
 /* estrelas: 4 casinhas (prata = ganhas); a 5ª vira UMA estrela dourada (vale 5); número = total */
-.stz{flex:none;display:inline-flex;align-items:center;gap:.12rem;line-height:1;font-size:1.9rem;margin-block:-.4rem}
+.stz{flex:none;display:inline-flex;align-items:center;gap:.12rem;line-height:1;font-size:1.9rem;margin-block:-.4rem;padding-right:.35rem}
 .stz i{font-style:normal;display:block;line-height:1;color:rgba(255,255,255,.16)}
 .stz i.on{color:#e9e4d8;text-shadow:0 0 .5rem rgba(255,255,255,.35)}
+.stz.tight{font-size:1.45rem;gap:0}
+.stz.tight b{font-size:1.5rem;margin-right:.35rem}
+.stz.tight em{font-size:1.25rem;margin:0 .15rem 0 .02rem}
 .stz i.half{color:transparent;background:linear-gradient(90deg,#e9e4d8 50%,rgba(255,255,255,.16) 50%);-webkit-background-clip:text;background-clip:text;text-shadow:none}
 .stz i.g{color:#ffc800;font-size:1.3em;text-shadow:0 0 .7rem rgba(255,200,0,.95),0 0 1.5rem rgba(255,150,0,.65)}
 .stz em{font-style:normal;font-family:var(--head);font-weight:700;font-size:1.5rem;color:#ffc800;margin:0 .3rem 0 .05rem}
@@ -565,11 +568,12 @@ function vagasInfo() {
 // desenho das estrelas: até 4 estrelas prata; a 5ª vira uma estrela dourada (cada dourada vale 5); passa de 3 douradas vira "★ ×N"; o número é o total
 function estrelasHtml(t) {
   const g = Math.floor(t / 5), r = t - g * 5, rf = Math.floor(r), meia = r - rf >= 0.5;   // meia = tem meia estrela sobrando
-  const gold = g === 0 ? '' : (g <= 3 ? '<i class="g">★</i>'.repeat(g) : `<i class="g">★</i><em>×${g}</em>`);
+  const gold = g === 0 ? '' : (g === 1 ? '<i class="g">★</i>' : `<i class="g">★</i><em>×${g}</em>`);   // 2 ou mais douradas: uma estrela com "×N" (cabe na linha)
   // sem douradas: 4 casinhas (as vazias mostram o que falta); com douradas: só as prata ganhas (a meia aparece pela metade)
   const slots = g > 0 ? rf + (meia ? 1 : 0) : Math.max(4, rf + (meia ? 1 : 0));
   const reg = Array.from({length: slots}, (_, i) => `<i class="${i < rf ? 'on' : (i === rf && meia ? 'on half' : '')}">★</i>`).join('');
-  return `<span class="stz" title="${fmtEst(t)} estrela${t === 1 ? '' : 's'}"><b class="${t ? '' : 'z'}">${fmtEst(t)}</b>${gold}${reg}</span>`;
+  const aperta = (g > 0 && slots >= 3) || fmtEst(t).length >= 4;   // linha cheia: estrelas e número um pouco menores
+  return `<span class="stz${aperta ? ' tight' : ''}" title="${fmtEst(t)} estrela${t === 1 ? '' : 's'}"><b class="${t ? '' : 'z'}">${fmtEst(t)}</b>${gold}${reg}</span>`;
 }
 function calc(rg) {
   rg = rg || weekRange();
