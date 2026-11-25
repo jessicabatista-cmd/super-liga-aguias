@@ -489,9 +489,12 @@ async function loadAll(full) {
   ]);
   S.cfg = cfg[0]; S.vend = vend; S.vendas = vendas;
   if (fotos) { S.fotos = {}; fotos.forEach(f => S.fotos[f.id] = f.foto); }
-  if (full || !S.estr || !S.estr.inicio) {   // estrelas: início da contagem e ajustes manuais (mudam pouco)
-    try { const [ec, ea] = await Promise.all([api('metas_estrelas_cfg?select=inicio'), api('metas_estrelas_ajustes?select=*&order=criado_em.desc')]); S.estr = {inicio: ec[0] ? ec[0].inicio : null, ajustes: ea}; } catch (e) {}
-  }
+  // estrelas: os ajustes do ADM vêm a cada atualização (leve) para a TV comemorar na hora; o início da contagem muda pouco
+  try {
+    const needCfg = full || !S.estr || !S.estr.inicio;
+    const [ea, ec] = await Promise.all([api('metas_estrelas_ajustes?select=*&order=criado_em.desc&limit=200'), needCfg ? api('metas_estrelas_cfg?select=inicio') : Promise.resolve(null)]);
+    S.estr = {inicio: ec ? (ec[0] ? ec[0].inicio : null) : S.estr.inicio, ajustes: ea};
+  } catch (e) {}
   S.ok = true;
   try { localStorage.setItem('metas_cache', JSON.stringify({cfg: S.cfg, vend: S.vend, vendas: S.vendas.slice(0, 600)})); } catch (e) {}
 }
