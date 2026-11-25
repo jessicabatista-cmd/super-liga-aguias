@@ -597,7 +597,7 @@ function calc(rg) {
   });
   return {SS, Q, T, byId, rg};
 }
-const nomeCurto = v => v.apelido ? v.nome.split(' ')[0] + ' “' + v.apelido + '”' : v.nome.split(' ')[0];
+const nomeCurto = v => v.nome.split(' ')[0];   // nas comemorações só o primeiro nome (sem o apelido "Dinossaura"/"Senhora")
 
 
 /* ================= SOM + FX + PALCO ================= */
