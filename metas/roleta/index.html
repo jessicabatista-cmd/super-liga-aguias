@@ -43,6 +43,7 @@ select{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var
 .res .k{font-family:var(--head);letter-spacing:.22em;text-transform:uppercase;opacity:.8;font-size:.9rem}
 .res .v{font-family:var(--head);font-weight:700;font-size:clamp(1.5rem,5vw,2.2rem);line-height:1.1;text-transform:uppercase;color:var(--rc,var(--yellow));margin-top:4px}
 .res .n{font-size:.85rem;opacity:.7;margin-top:6px}
+.res .z{font-family:var(--head);font-size:clamp(1.1rem,3.6vw,1.5rem);text-transform:uppercase;color:#fff;margin-top:6px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px 18px}
 .panel h2{font-family:var(--head);font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-size:1rem;color:var(--yellow);margin:0 0 10px}
 .panel h2 + ul{margin-bottom:16px}
@@ -168,14 +169,21 @@ li.on .t{color:var(--yellow);font-weight:700}
     })(performance.now());
   }
 
+  var ZOEIRA = ['Paga o mico, {n}! 🤡', '{n}, a sala inteira vai assistir! 🍿', 'Não adianta fugir, {n}! 😈', 'Ih, {n}... a roleta não perdoa! 🎰', 'Prepara o ego, {n}! 🫣', 'Hora de virar atração, {n}! 🎭',
+    '{n} pediu emoção e levou! 🎢', 'Vai ficar pra história, {n}! 📸', 'Chama o time que o show vai começar, {n}! 🎤', 'O que acontece na roleta, todo mundo vê, {n}! 👀', 'Respira fundo, {n}. A gente grava! 📱', 'Segura o riso, time: a vez é do {n}! 😂'];
+  function triste() { try { if (!audio) return; [[392, 0, .35], [370, .35, .35], [349, .7, .35], [330, 1.05, .16], [311, 1.17, .16], [330, 1.29, .16], [311, 1.41, .16], [330, 1.53, .16], [294, 1.65, .4]].forEach(function (a) { var o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime + a[1]; o.type = 'sawtooth'; o.frequency.value = a[0]; g.gain.setValueAtTime(.1, t); g.gain.exponentialRampToValueAtTime(.0001, t + a[2]); o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + a[2] + .02); }); } catch (e) {} }
+
   function fim(it) {
-    busy = false; dest = it.id; desenha(); fanfare();
+    busy = false; dest = it.id; desenha();
     var prenda = it.tipo === 'prenda', box = $('res'), nome = $('vend').selectedOptions[0] && $('vend').value ? $('vend').selectedOptions[0].textContent : '';
+    if (prenda && !it.repete) triste(); else fanfare();
     box.style.setProperty('--rc', it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984'));
     box.textContent = '';
     var k = document.createElement('div'); k.className = 'k'; k.textContent = it.repete ? '🔁 Que sorte!' : (prenda ? '😈 Prenda' : '🎁 Prêmio');
     var v = document.createElement('div'); v.className = 'v'; v.textContent = it.texto;
-    box.appendChild(k); box.appendChild(v);
+    box.appendChild(k);
+    if (prenda && !it.repete) { var z = document.createElement('div'); z.className = 'z'; z.textContent = ZOEIRA[Math.floor(Math.random() * ZOEIRA.length)].replace(/\{n\}/g, nome || 'campeão'); box.appendChild(z); }
+    box.appendChild(v);
     if (nome || it.repete) { var n = document.createElement('div'); n.className = 'n'; n.textContent = it.repete ? 'Clique em GIRAR para a próxima rodada.' : nome; box.appendChild(n); }
     box.hidden = false;
     var li = document.querySelector('li[data-id="' + it.id + '"]'); if (li) li.classList.add('on');

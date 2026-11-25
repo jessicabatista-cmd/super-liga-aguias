@@ -333,6 +333,10 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 @keyframes rtvin{from{transform:translateX(-4vw);opacity:0}to{transform:none;opacity:1}}
 #rtv .rtv-res .k{font-family:var(--head);font-weight:700;font-size:3.6vh;letter-spacing:.3em;text-transform:uppercase;color:var(--rc)}
 #rtv .rtv-res .v{font-family:var(--head);font-weight:700;font-size:8.6vh;line-height:1;text-transform:uppercase;margin-top:1.2vh;text-shadow:0 0 4vh var(--rc)}
+#rtv .rtv-res .v.long{font-size:6vh}
+#rtv .rtv-res .zoa{font-family:var(--head);font-weight:500;font-size:4.3vh;line-height:1.12;text-transform:uppercase;color:#fff;margin-top:1vh;transform-origin:0 50%;animation:rtvwob 1.1s ease-in-out infinite}
+@keyframes rtvwob{0%,100%{transform:rotate(-1.4deg)}50%{transform:rotate(1.4deg)}}
+.rlt-res .z{font-family:var(--head);font-size:1.25rem;text-transform:uppercase;color:#fff;margin-top:.35rem}
 #rtv .rtv-wheel{position:relative;height:90vh;aspect-ratio:1;justify-self:center;max-width:100%}
 #rtvC{width:100%;height:100%;display:block;filter:drop-shadow(0 2vh 5vh rgba(0,0,0,.7))}
 #rtv .rtv-ptr{position:absolute;left:50%;top:-1.6%;width:9%;transform:translateX(-50%);filter:drop-shadow(0 .6vh .8vh rgba(0,0,0,.7))}
@@ -646,6 +650,8 @@ function sfxVenda(ms) {
   } else sfxVendaSynth();
 }
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
+// som da prenda: "trombone triste" descendo, com vibrato no fim
+function sfxPrenda() { [[392, 0, .35], [370, .35, .35], [349, .7, .35]].forEach(a => tone(a[0], a[1], a[2], 'sawtooth', .13)); [330, 311, 330, 311, 330, 294].forEach((f, i) => tone(f, 1.05 + i * .12, .16, 'sawtooth', .13)); }
 // som da estrela: arpejo brilhante subindo, com um "ding" no final
 function sfxEstrela() { [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, i * .1, .35, 'triangle', .16)); tone(2349, .6, .9, 'sine', .12); tone(1568, .6, .9, 'triangle', .1); }
 function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
@@ -945,6 +951,16 @@ async function refresh() { await loadAll(true); await loadGiros(); renderAdm(); 
 /* ================= ROLETA DE PRÊMIOS E PRENDAS ================= */
 // Roleta 1: venda de Performance. Roleta 2: venda de Imersão ou Hub (uma por venda, não por cadeira).
 // O sorteio acontece no banco (metas_roleta_girar); aqui só desenhamos e animamos.
+// zoeira de quando sai uma PRENDA: a frase é escolhida pelo id do giro, então a TV e o ADM mostram a mesma
+const ZOEIRA = [
+  'Paga o mico, {n}! 🤡', '{n}, a sala inteira vai assistir! 🍿', 'Não adianta fugir, {n}! 😈', 'Ih, {n}... a roleta não perdoa! 🎰',
+  'Prepara o ego, {n}! 🫣', 'Hora de virar atração, {n}! 🎭', '{n} pediu emoção e levou! 🎢', 'Vai ficar pra história, {n}! 📸',
+  'Chama o time que o show vai começar, {n}! 🎤', 'O que acontece na roleta, todo mundo vê, {n}! 👀', 'Respira fundo, {n}. A gente grava! 📱', 'Segura o riso, time: a vez é do {n}! 😂'
+];
+function zoeira(nome, seed) {
+  let h = 0; String(seed || Math.random()).split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) | 0; });
+  return ZOEIRA[Math.abs(h) % ZOEIRA.length].replace(/\{n\}/g, nome || 'campeão');
+}
 S.giros = [];
 async function loadGiros() {
   try { S.giros = await api('metas_roleta_giros?select=id,venda_id,seq,entregue,item_id,metas_roleta_itens(texto,tipo,repete)&order=seq&limit=5000'); } catch (e) {}
@@ -1076,9 +1092,10 @@ async function tvRoletaProx() {
     const prenda = it.tipo === 'prenda', cor = it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984');
     $('#rtvSt').classList.add('hide');
     const res = $('#rtvRes'); res.style.setProperty('--rc', cor);
-    res.innerHTML = `<div class="k">${it.repete ? '🔁 Que sorte!' : (prenda ? '😈 Prenda' : '🎁 Prêmio')}</div><div class="v">${esc(it.texto)}</div>`;
+    const nome1 = v ? v.nome.split(' ')[0] : '', zoa = prenda && !it.repete;
+    res.innerHTML = `<div class="k">${it.repete ? '🔁 Que sorte!' : (prenda ? '😈 Prenda' : '🎁 Prêmio')}</div>${zoa ? `<div class="zoa">${esc(zoeira(nome1, g.id))}</div>` : ''}<div class="v${it.texto.length > 36 ? ' long' : ''}">${esc(it.texto)}</div>`;
     res.classList.remove('hide');
-    try { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .12, .35, 'triangle', .13)); } catch (e) {}
+    try { if (zoa) sfxPrenda(); else [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .12, .35, 'triangle', .13)); } catch (e) {}
     rtvConfetti(it.repete ? ['#8249da', '#ffc800'] : (prenda ? ['#e0533d', '#8249da', '#ffc800'] : ['#ffc800', '#3fb984', '#fff6d6', '#ff9a3c']));
     await wait(it.repete ? 30000 : 12000);
     if (!TVR.fila.length) { box.classList.remove('on'); await wait(450); box.classList.add('hide'); }
@@ -1100,7 +1117,7 @@ function rltFim(g, it) {
   const box = $('#rltR'), prenda = it.tipo === 'prenda';
   box.style.setProperty('--rc', it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984'));
   box.innerHTML = it.repete ? `<div class="k">🔁 Que sorte!</div><div class="v">${esc(it.texto)}</div><div class="n">Clique em GIRAR para a próxima rodada.</div>`
-    : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div><div class="v">${esc(it.texto)}</div><div class="n">${esc(RLT.nome.split(' ')[0])}</div>`;
+    : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div>${prenda ? `<div class="z">${esc(zoeira(RLT.nome.split(' ')[0], g.giro_id))}</div>` : ''}<div class="v">${esc(it.texto)}</div><div class="n">${esc(RLT.nome.split(' ')[0])}</div>`;
   box.classList.remove('hide');
   $('#rltGo').disabled = !it.repete; $('#rltGo').textContent = 'GIRAR';
   refresh().catch(() => {});
