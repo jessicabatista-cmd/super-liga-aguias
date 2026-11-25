@@ -286,6 +286,15 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .rlt-res .k{font-family:var(--head);letter-spacing:.2em;text-transform:uppercase;opacity:.8;font-size:.9rem}
 .rlt-res .v{font-family:var(--head);font-weight:700;font-size:1.9rem;line-height:1.1;text-transform:uppercase;color:var(--rc,var(--yellow));margin:.35rem 0}
 .rlt-res .n{font-size:.9rem;opacity:.75}
+/* versão do telão: maior, sem botões */
+#rlt.tv .rlt-box{width:min(94vw,92vh);padding:1.6vh 2vh 2vh}
+#rlt.tv .rlt-tt{font-size:min(5vh,3.4rem)}
+#rlt.tv .rlt-tt small{font-size:min(2.4vh,1.4rem)}
+#rlt.tv .rlt-leg{font-size:min(2.2vh,1.3rem)}
+#rlt.tv .rlt-stage{width:min(100%,64vh)}
+#rlt.tv #rltGo,#rlt.tv #rltX{display:none}
+#rlt.tv .rlt-res{max-width:min(100%,80vh);margin-top:1.4vh}
+#rlt.tv .rlt-res .v{font-size:min(4.6vh,3rem)}
 .rlt-ent{margin-left:.6rem;font-size:.8rem;white-space:nowrap}
 .elite{display:inline-block;vertical-align:middle;margin-left:.8rem;font-size:1.15rem;letter-spacing:.2em;background:var(--yellow);color:#000;padding:.25rem .8rem .2rem;font-weight:700}
 </style>
@@ -616,6 +625,7 @@ function initTV() {
   fetch('assets/musica-venda.mp3', {method: 'HEAD'}).then(r => { if (!r.ok) customMusic = false; }).catch(() => { customMusic = false; }); // sem arquivo próprio: usa o jingle
   setInterval(async () => { try { const h = await pageHash(); if (TV.ver != null && h !== TV.ver && !TV.busy && !TV.queue.length) location.reload(); } catch (e) {} }, 120000);
   loadAll(true).then(() => renderTV(true)).catch(() => $('#offline').classList.remove('hide'));
+  tvRoletaInit();
 }
 
 function setHtml(sel, html) { if (TV.html[sel] === html) return; TV.html[sel] = html; $(sel).innerHTML = html; }
@@ -860,6 +870,10 @@ async function rltGirar() {
   try { g = await rpc('metas_roleta_girar', {p_pin: A.pin, p_venda: RLT.venda}); }
   catch (e) { toast(e.message, true); RLT.busy = false; $('#rltGo').disabled = false; return; }
   const byId = {}; RLT.itens.forEach(i => byId[i.id] = i);
+  rltAnima(g, byId, () => rltFim(g, byId[g.item_id]));
+}
+// anima a roda até o item sorteado (usado pela tela do ADM e pelo telão)
+function rltAnima(g, byId, fim) {
   RLT.lista = g.slices.map(id => byId[id]).filter(Boolean);
   const A_ = Math.PI * 2 / RLT.lista.length, pos = Math.max(0, g.slices.indexOf(g.item_id)), T = Math.PI * 2;
   const cur = ((RLT.rot % T) + T) % T, tgt = ((-Math.PI / 2 - (pos + .5) * A_ + g.jitter * A_) % T + T) % T;
@@ -868,9 +882,52 @@ async function rltGirar() {
     if (t0 === null) t0 = ts;
     const p = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - p, 4);
     RLT.rot = start + delta * e; rltDesenha();
-    if (p < 1) requestAnimationFrame(frame); else rltFim(g, byId[g.item_id]);
+    if (p < 1) requestAnimationFrame(frame); else fim();
   };
   requestAnimationFrame(frame);
+}
+
+/* ---- telão: espelha cada giro feito no ADM ---- */
+const TVR = {since: null, fila: [], busy: false};
+async function tvRoletaInit() {
+  try {
+    RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem');
+    const u = await api('metas_roleta_giros?select=criado_em&order=criado_em.desc&limit=1');
+    TVR.since = u[0] ? u[0].criado_em : new Date().toISOString();   // giros antigos não repetem ao abrir a TV
+  } catch (e) { TVR.since = new Date().toISOString(); }
+  setInterval(tvRoletaPoll, 2000);
+}
+async function tvRoletaPoll() {
+  if (TVR.since == null) return;
+  try {
+    const novos = await api('metas_roleta_giros?select=id,venda_id,seq,item_id,slices,jitter,turns,criado_em&criado_em=gt.' + encodeURIComponent(TVR.since) + '&order=criado_em');
+    novos.forEach(g => { TVR.since = g.criado_em; TVR.fila.push(g); });
+    tvRoletaProx();
+  } catch (e) {}
+}
+async function tvRoletaProx() {
+  if (TVR.busy || !TVR.fila.length) return;
+  TVR.busy = true;
+  const g = TVR.fila.shift(), box = $('#rlt');
+  try {
+    if (!RLT.itens) RLT.itens = await api('metas_roleta_itens?select=*&ativo=eq.true&order=roleta,ordem');
+    let s = S.vendas.find(x => x.id === g.venda_id);
+    if (!s) { const r = await api('metas_vendas?select=*&id=eq.' + g.venda_id); s = r[0]; }
+    const v = s ? S.vend.find(x => x.id === s.vendedor_id) : null, byId = {}; RLT.itens.forEach(i => byId[i.id] = i);
+    const rr = (s && s.tipo === 'performance') ? 1 : 2, it = byId[g.item_id];
+    $('#rltT').innerHTML = `${esc(v ? v.nome.split(' ')[0] : '')} · ${esc(s ? TIPOS[s.tipo].nome : '')}<small>Roleta ${rr} · ${rr === 1 ? 'venda de Performance' : 'venda de Imersão ou Hub'}</small>`;
+    $('#rltR').classList.add('hide'); box.classList.add('tv'); box.classList.remove('hide');
+    RLT.lista = g.slices.map(id => byId[id]).filter(Boolean); rltDesenha();
+    await new Promise(ok => setTimeout(ok, 700));
+    await new Promise(ok => rltAnima(g, byId, ok));
+    const prenda = it.tipo === 'prenda', res = $('#rltR');
+    res.style.setProperty('--rc', it.repete ? '#8249da' : (prenda ? '#e0533d' : '#3fb984'));
+    res.innerHTML = it.repete ? `<div class="k">🔁 Que sorte!</div><div class="v">${esc(it.texto)}</div>` : `<div class="k">${prenda ? '😈 Prenda' : '🎁 Prêmio'}</div><div class="v">${esc(it.texto)}</div>`;
+    res.classList.remove('hide');
+    await new Promise(ok => setTimeout(ok, it.repete ? 30000 : 10000));
+    if (!TVR.fila.length || !it.repete) { if (!TVR.fila.length) box.classList.add('hide'); }
+  } catch (e) { box.classList.add('hide'); }
+  TVR.busy = false; tvRoletaProx();
 }
 function rltFim(g, it) {
   RLT.busy = false; RLT.ult = g;
