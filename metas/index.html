@@ -601,6 +601,8 @@ function sfxVenda(ms) {
   } else sfxVendaSynth();
 }
 function sfxSale() { tone(988, 0, .1); tone(1319, .09, .25); }
+// som da estrela: arpejo brilhante subindo, com um "ding" no final
+function sfxEstrela() { [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, i * .1, .35, 'triangle', .16)); tone(2349, .6, .9, 'sine', .12); tone(1568, .6, .9, 'triangle', .1); }
 function sfxMedal() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, i * .12, .3, 'triangle', .2)); tone(1568, .9, .7, 'sawtooth', .1); }
 
 const STAGE = {w: 1920, h: 1080};
@@ -630,7 +632,10 @@ function fxInit() {
     fx.parts.forEach(p => {
       p.vy += .22; p.x += p.vx; p.y += p.vy; p.l--; p.rot += p.vr;
       c.globalAlpha = Math.min(1, p.l / 40); c.fillStyle = p.c;
-      c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); c.restore();
+      c.save(); c.translate(p.x, p.y); c.rotate(p.rot);
+      if (p.star) { c.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? p.w * .22 : p.w * .5, a = -Math.PI / 2 + k * Math.PI / 5; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.fill(); }
+      else c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      c.restore();
     });
     c.globalAlpha = 1;
     requestAnimationFrame(loop);
@@ -646,6 +651,15 @@ function confetti(colors, n, fromY) {
     const left = i % 2 === 0;
     fx.parts.push({x: left ? 0 : W, y: fromY ?? Hh * .8, vx: (left ? 1 : -1) * (6 + Math.random() * 16), vy: -(12 + Math.random() * 20), w: 8 + Math.random() * 12, h: 6 + Math.random() * 10,
       c: colors[(Math.random() * colors.length) | 0], l: 120 + Math.random() * 90, rot: Math.random() * 6, vr: (Math.random() - .5) * .4});
+  }
+}
+// chuva de estrelas: sobem dos cantos e caem girando
+function starParts(colors, n) {
+  const W = fx.cv.width, Hh = fx.cv.height;
+  for (let i = 0; i < n; i++) {
+    const left = i % 2 === 0;
+    fx.parts.push({star: true, x: left ? W * .1 : W * .9, y: Hh * .9, vx: (left ? 1 : -1) * (3 + Math.random() * 12), vy: -(14 + Math.random() * 20), w: 26 + Math.random() * 40, h: 0,
+      c: colors[(Math.random() * colors.length) | 0], l: 150 + Math.random() * 110, rot: Math.random() * 6, vr: (Math.random() - .5) * .22});
   }
 }
 function rain(colors, n) {
@@ -689,15 +703,23 @@ function renderTV(initial) {
   // eventos: vendas novas e metas batidas
   const ev = [];
   const hitNow = new Set(Object.values(SS).filter(s => s.v.ativo && s.sem >= s.v.meta).map(s => s.v.id));
+  const EST = calcEstrelas();
+  if (!TV.seenAj) TV.seenAj = new Set(((S.estr && S.estr.ajustes) || []).map(a => a.id));
   if (TV.prevHit === null) { S.vendas.forEach(s => TV.seenV.add(s.id)); }
   else {
+    // estrelas dadas na mão pelo ADM (bônus) também comemoram
+    ((S.estr && S.estr.ajustes) || []).slice().reverse().forEach(a => {
+      if (TV.seenAj.has(a.id)) return; TV.seenAj.add(a.id);
+      const v = byId[a.vendedor_id]; if (!v || !v.ativo || a.delta <= 0) return;
+      ev.push({kind: 'meta', cargo: v.cargo, who: nomeCurto(v), txt: 'ganhou ' + a.delta + (a.delta > 1 ? ' estrelas' : ' estrela') + ' de bônus', est: EST[v.id] ? EST[v.id].total : 0});
+    });
     S.vendas.slice().reverse().forEach(s => {
       if (TV.seenV.has(s.id)) return; TV.seenV.add(s.id);
       const v = byId[s.vendedor_id];
       if (s.cancelada || !v) return;
       ev.push({kind: 'sale', cargo: v.cargo, who: nomeCurto(v), txt: (s.qtd > 1 ? s.qtd + '× ' : '') + TIPOS[s.tipo].nome, valor: s.valor ? +s.valor : 0});
     });
-    hitNow.forEach(id => { if (!TV.prevHit.has(id)) { const v = byId[id]; ev.push({kind: 'meta', cargo: v.cargo, who: nomeCurto(v), txt: 'bateu a meta da semana · ganhou ★'}); } });
+    hitNow.forEach(id => { if (!TV.prevHit.has(id)) { const v = byId[id]; ev.push({kind: 'meta', cargo: v.cargo, who: nomeCurto(v), txt: 'bateu a meta da semana', est: EST[id] ? EST[id].total : 0}); } });
   }
   TV.prevHit = hitNow;
 
@@ -766,16 +788,16 @@ function runQueue() {
   root.style.setProperty('--evc', col);
   $('#flash').style.setProperty('--evc', col);
   const isMeta = e.kind === 'meta';
-  const cardMs = isMeta ? 5200 : (TV.queue.length ? 3200 : 5200);
-  $('#evm').textContent = isMeta ? '🎯' : '💰';
+  const cardMs = isMeta ? 6600 : (TV.queue.length ? 3200 : 5200);
+  $('#evm').textContent = isMeta ? '⭐' : '💰';
   $('#evk').textContent = e.who;
   $('#evs').innerHTML = isMeta
-    ? `<span class="lbl">Meta batida · ${esc(sqn)}</span>${esc(e.txt)}`
+    ? `<span class="lbl">Estrela conquistada · ${esc(sqn)}</span>${esc(e.txt)}${e.est > 0 ? `<span class="val">★ ${e.est}</span>` : ''}`
     : `<span class="lbl">Nova venda · ${esc(sqn)}</span>${esc(e.txt)}${e.valor > 0 ? `<span class="val">${fmtMoney(e.valor)}</span>` : ''}`;
   root.classList.add('on');
   const fl = $('#flash'); fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on');
   const el = $('#sq-' + e.cargo); if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
-  if (isMeta) { sfxMedal(); confetti([col, '#ffc800', '#ffffff', '#ff8a1f'], 170); setTimeout(() => confetti([col, '#ffc800'], 90), 700); }
+  if (isMeta) { sfxEstrela(); starParts(['#ffc800', '#ffe27a', '#ffffff', col], 60); confetti([col, '#ffc800', '#ffffff', '#ff8a1f'], 120); setTimeout(() => { starParts(['#ffc800', '#ffe27a'], 40); confetti([col, '#ffc800'], 70); }, 900); }
   else { sfxVenda(cardMs); confetti([col, '#ffc800', '#ffffff'], 90); }
   setTimeout(() => { root.classList.remove('on'); setTimeout(() => { TV.busy = false; runQueue(); }, 500); }, cardMs);
 }
@@ -1037,7 +1059,7 @@ function renderAdm(soft) {
   const root = $('#admroot');
   const sy = window.scrollY;
   const C = calc();
-  const tabs = [['venda', '💰 Lançar venda'], ['estrelas', '⭐ Estrelas'], ['hist', '📋 Histórico'], ['equipe', '👥 Equipe'], ['cfg', '⚙️ Config']];
+  const tabs = [['venda', '💰 Lançar venda'], ['hist', '📋 Histórico'], ['equipe', '👥 Equipe'], ['cfg', '⚙️ Config']];
   const f = d => fmtBR(d, {day: '2-digit', month: '2-digit'});
   root.innerHTML = `
     <div class="ah"><img src="assets/pronix-mark.svg" alt=""><h1>Metas <em>Águias</em> · ADM</h1><span class="sp"></span>
@@ -1050,13 +1072,14 @@ function renderAdm(soft) {
     <div id="pane"></div>`;
   $('#lo').onclick = async e => { e.preventDefault(); await SBC.auth.signOut(); try { sessionStorage.removeItem('metas_admin'); } catch (x) {} location.href = 'index.html?admin=1'; };
   root.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { A.tab = b.dataset.t; renderAdm(); });
-  ({venda: paneVenda, estrelas: paneEstrelas, hist: paneHist, equipe: paneEquipe, cfg: paneCfg})[A.tab](C);
+  if (A.tab === 'estrelas') A.tab = 'venda';   // as estrelas agora ficam na própria página de lançar venda
+  ({venda: paneVenda, hist: paneHist, equipe: paneEquipe, cfg: paneCfg})[A.tab](C);
   if (soft) window.scrollTo(0, sy);
 }
 
 function sellerBtn(v, C) {
-  const ss = C.SS[v.id];
-  return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${ss.sem >= v.meta ? 'done' : ''}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}<br><small>${ss.sem}/${v.meta} na semana${ss.sem >= v.meta ? ' ✅' : ''}</small></span></button>`;
+  const ss = C.SS[v.id], e = A.est && A.est[v.id];
+  return `<button class="sb ${A.sel === v.id ? 'on' : ''} ${ss.sem >= v.meta ? 'done' : ''}" data-v="${v.id}"><span>${esc(v.nome.split(' ')[0])}${e && e.total ? ` <b style="color:var(--yellow)">★${e.total}</b>` : ''}<br><small>${ss.sem}/${v.meta} na semana${ss.sem >= v.meta ? ' ✅' : ''}</small></span></button>`;
 }
 function previewVenda(C) {
   if (!A.sel || !A.tipo) return 'Escolha o vendedor e o produto vendido.';
@@ -1065,6 +1088,7 @@ function previewVenda(C) {
   return `<b>${esc(v.nome)}</b> (${SQ[v.cargo].nome}) · ${q}× ${TIPOS[A.tipo].nome}. Semana: ${ss.sem}/${v.meta} → <b>${nw}/${v.meta}</b>${ss.sem < v.meta && nw >= v.meta ? ' <b style="color:var(--yellow)">· META BATIDA! 🎯</b>' : ''}${val ? `<br>💰 <b>${fmtMoney(val)}</b>` : ''}`;
 }
 function paneVenda(C) {
+  A.est = calcEstrelas();
   const col = k => `<div class="card" data-sqdrop="${k}"><h2 style="color:${SQ[k].cor}">${SQ[k].nome}</h2><div class="sellers">${S.vend.filter(v => v.cargo === k && v.ativo).map(v => sellerBtn(v, C)).join('') || '<span class="help">Ninguém neste squad.</span>'}</div>
     <div style="display:flex;gap:.4rem;margin-top:.7rem"><input data-nn="${k}" placeholder="＋ Novo vendedor em ${SQ[k].nome}" style="flex:1;min-width:0"><button class="btn sm" data-na="${k}">Adicionar</button></div></div>`;
   $('#pane').innerHTML = `
@@ -1081,7 +1105,9 @@ function paneVenda(C) {
       <button class="btn" id="reg" style="font-size:1.3rem;padding:.9rem 2rem" disabled>Registrar venda</button>
       <div class="help" id="falta" style="margin-top:.5rem;color:var(--yellow)"></div>
       <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
-    <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>`;
+    <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>
+    <div id="estrelasBox"></div>`;
+  paneEstrelas(C, $('#estrelasBox'));
   $('#newv').onclick = () => { A.tab = 'equipe'; renderAdm(); window.scrollTo(0, 0); };
   $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; if (A.tipo && !podeVender(C.byId[A.sel].cargo, A.tipo)) A.tipo = null; renderAdm(); });
   // criar vendedor direto no card do squad
@@ -1174,12 +1200,12 @@ function bindRowActions() {
   });
 }
 
-function paneEstrelas(C) {
+function paneEstrelas(C, host) {
   const E = calcEstrelas(), ini = S.estr && S.estr.inicio;
   const ativos = S.vend.filter(v => v.ativo).slice().sort((a, b) => (E[b.id].total - E[a.id].total) || a.nome.localeCompare(b.nome));
   const aj = ((S.estr && S.estr.ajustes) || []).slice(0, 30);
   const nomeDe = id => { const v = S.vend.find(x => x.id === id); return v ? v.nome : '(removido)'; };
-  $('#pane').innerHTML = `
+  (host || $('#pane')).innerHTML = `
     <div class="card"><h2>⭐ Estrelas por semana batida</h2>
       <p class="help" style="margin-bottom:.6rem">Cada semana comercial em que o vendedor bate a meta vale <b>1 estrela</b>. A conta é automática a partir de <b>${ini ? fmtBR(ini, {day: '2-digit', month: '2-digit', year: 'numeric'}) : '—'}</b>, e a semana em andamento já conta assim que a meta é batida. A meta usada é a atual de cada vendedor.</p>
       <div class="lst">${ativos.map(v => { const e = E[v.id]; return `<div class="li"><span class="g"><b>${esc(v.nome)}</b> · ${SQ[v.cargo].nome} <small style="opacity:.6">· ${e.sem.map(w => w.hit ? '★' : '·').join(' ') || 'sem semanas'}</small></span><span class="badge" style="background:var(--yellow);color:#000">★ ${e.total}</span><small style="opacity:.6;margin-left:.5rem">${e.auto} por semanas${e.extra ? ' · ' + (e.extra > 0 ? '+' : '') + e.extra + ' de ajuste' : ''}</small></div>`; }).join('') || '<div class="help">Nenhum vendedor ativo.</div>'}</div></div>
