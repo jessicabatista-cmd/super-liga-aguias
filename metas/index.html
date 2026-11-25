@@ -268,6 +268,20 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 #sq-SV .hd small{opacity:.9;text-shadow:0 .1rem .5rem rgba(0,0,0,.9)}
 #sq-SV .rw{background:rgba(0,0,0,.42)}
 #sq-SV .rw .nm{text-shadow:0 .1rem .4rem rgba(0,0,0,.9)}
+/* vagas da imersão (ao lado da contagem da semana) */
+.hr{display:flex;gap:1.4rem;align-items:stretch;height:100%}
+.vagas{display:flex;flex-direction:column;justify-content:center;gap:.4rem;min-width:21rem;padding:.6rem 2.2rem .6rem 1.8rem;background:rgba(255,255,255,.06);border-left:.3rem solid var(--violet)}
+.vagas .vl{font-family:var(--head);font-weight:700;font-size:1.35rem;letter-spacing:.22em;text-transform:uppercase;opacity:.85}
+.vagas .vn{font-family:var(--head);font-weight:700;font-size:4.6rem;line-height:1;white-space:nowrap}
+.vagas .vn i{font-style:normal;font-size:2.6rem;opacity:.6;font-weight:500}
+.vagas .vn small{font-size:1.3rem;letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin-left:.7rem;font-weight:500}
+.vagas .vb{height:.8rem;background:rgba(255,255,255,.14)}
+.vagas .vb i{display:block;height:100%;background:var(--violet);transition:width .8s}
+.vagas.quase .vb i,.vagas.quase .vn{color:var(--yellow);background-color:transparent}
+.vagas.quase .vb i{background:var(--yellow)}
+.vagas.cheio{border-left-color:var(--yellow)}
+.vagas.cheio .vn,.vagas.cheio .vl{color:var(--yellow);animation:pulse 1.4s infinite}
+.vagas.cheio .vb i{background:var(--yellow)}
 /* estrelas por semana batida */
 .rw .prod{display:flex;justify-content:space-between;align-items:center;gap:.8rem;opacity:1}
 .rw .prod .pt{opacity:.75;min-width:0;overflow:hidden;text-overflow:ellipsis}
@@ -340,9 +354,12 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
       <img class="mk" src="assets/pronix-mark.svg" alt="">
       <div><h1>Metas <em>Águias</em></h1><p id="periodo">Pronix · Time Comercial</p></div>
     </div>
-    <div class="clock">
-      <div class="big" id="dias">–</div>
-      <div><div class="lbl" id="dlbl">dias para<br>fechar a semana</div><div class="hms" id="hms"></div></div>
+    <div class="hr">
+      <div class="vagas hide" id="vagas"></div>
+      <div class="clock">
+        <div class="big" id="dias">–</div>
+        <div><div class="lbl" id="dlbl">dias para<br>fechar a semana</div><div class="hms" id="hms"></div></div>
+      </div>
     </div>
   </header>
   <section class="sumbar" id="sumbar"></section>
@@ -500,8 +517,9 @@ async function loadAll(full) {
   // estrelas: os ajustes do ADM vêm a cada atualização (leve) para a TV comemorar na hora; o início da contagem muda pouco
   try {
     const needCfg = full || !S.estr || !S.estr.inicio;
-    const [ea, ec] = await Promise.all([api('metas_estrelas_ajustes?select=*&order=criado_em.desc&limit=200'), needCfg ? api('metas_estrelas_cfg?select=inicio') : Promise.resolve(null)]);
+    const [ea, ec, vg] = await Promise.all([api('metas_estrelas_ajustes?select=*&order=criado_em.desc&limit=200'), needCfg ? api('metas_estrelas_cfg?select=inicio') : Promise.resolve(null), api('metas_vagas_cfg?select=*')]);
     S.estr = {inicio: ec ? (ec[0] ? ec[0].inicio : null) : S.estr.inicio, ajustes: ea};
+    if (vg && vg[0]) S.vagas = vg[0];
   } catch (e) {}
   S.ok = true;
   try { localStorage.setItem('metas_cache', JSON.stringify({cfg: S.cfg, vend: S.vend, vendas: S.vendas.slice(0, 600)})); } catch (e) {}
@@ -529,6 +547,12 @@ function calcEstrelas() {
   ((S.estr && S.estr.ajustes) || []).forEach(x => { if (out[x.vendedor_id]) out[x.vendedor_id].extra += x.delta; });
   Object.values(out).forEach(o => o.total = Math.max(0, o.auto + o.extra));
   return out;
+}
+// VAGAS DA IMERSÃO: ocupadas = número acertado no ADM + cadeiras de Imersão lançadas depois (cancelar tira de volta)
+function vagasInfo() {
+  const cf = S.vagas; if (!cf) return null;
+  let cur = 0; for (const s of S.vendas) if (!s.cancelada && s.tipo === 'imersao') cur += s.qtd;
+  return {oc: Math.max(0, cf.base + (cur - cf.ref)), total: cf.total};
 }
 // desenho das estrelas: até 4 estrelas prata; a 5ª vira uma estrela dourada (cada dourada vale 5); passa de 3 douradas vira "★ ×N"; o número é o total
 function estrelasHtml(t) {
@@ -724,6 +748,12 @@ function renderTV(initial) {
   // eventos: vendas novas e metas batidas
   const ev = [];
   const hitNow = new Set(Object.values(SS).filter(s => s.v.ativo && s.sem >= s.v.meta).map(s => s.v.id));
+  const VG = vagasInfo();
+  if (VG) {
+    const vp = Math.min(100, Math.round(VG.oc / VG.total * 100)), cheio = VG.oc >= VG.total, quase = !cheio && vp >= 90, vel = $('#vagas');
+    vel.classList.remove('hide'); vel.classList.toggle('cheio', cheio); vel.classList.toggle('quase', quase);
+    setHtml('#vagas', `<div class="vl">${cheio ? 'Vagas esgotadas' : 'Vagas · Imersão'}</div><div class="vn">${VG.oc}<i>/${VG.total}</i><small>vagas</small></div><div class="vb"><i style="width:${vp}%"></i></div>`);
+  }
   const EST = calcEstrelas();
   if (!TV.seenAj) TV.seenAj = new Set(((S.estr && S.estr.ajustes) || []).map(a => a.id));
   if (TV.prevHit === null) { S.vendas.forEach(s => TV.seenV.add(s.id)); }
@@ -1108,7 +1138,7 @@ function previewVenda(C) {
   if (!A.sel || !A.tipo) return 'Escolha o vendedor e o produto vendido.';
   const v = C.byId[A.sel], ss = C.SS[A.sel], q = Math.max(1, +A.qtd || 1), val = parseMoney(A.valor);
   const nw = ss.sem + q;
-  return `<b>${esc(v.nome)}</b> (${SQ[v.cargo].nome}) · ${q}× ${TIPOS[A.tipo].nome}. Semana: ${ss.sem}/${v.meta} → <b>${nw}/${v.meta}</b>${ss.sem < v.meta && nw >= v.meta ? ' <b style="color:var(--yellow)">· META BATIDA! 🎯</b>' : ''}${val ? `<br>💰 <b>${fmtMoney(val)}</b>` : ''}`;
+  return `<b>${esc(v.nome)}</b> (${SQ[v.cargo].nome}) · ${q}× ${TIPOS[A.tipo].nome}. Semana: ${ss.sem}/${v.meta} → <b>${nw}/${v.meta}</b>${ss.sem < v.meta && nw >= v.meta ? ' <b style="color:var(--yellow)">· META BATIDA! 🎯</b>' : ''}${val ? `<br>💰 <b>${fmtMoney(val)}</b>` : ''}${A.tipo === 'imersao' && vagasInfo() ? `<br>🎟️ Vagas da imersão: ${vagasInfo().oc} → <b>${vagasInfo().oc + q}</b>/${vagasInfo().total}` : ''}`;
 }
 function paneVenda(C) {
   A.est = calcEstrelas();
@@ -1129,7 +1159,18 @@ function paneVenda(C) {
       <div class="help" id="falta" style="margin-top:.5rem;color:var(--yellow)"></div>
       <span class="sync" id="syncmsg" style="margin-left:1rem">${esc(A.saved)}</span></div>
     <div class="card"><h2>Últimos lançamentos</h2><div class="lst">${lastRows(C, 8)}</div></div>
+    <div class="card"><h2>🎟️ Vagas da imersão</h2>
+      <p class="help" style="margin-bottom:.6rem">Aparece no painel, ao lado da contagem da semana. Cada <b>Imersão</b> lançada soma sozinha (uma vaga por cadeira, pela quantidade da venda) e cancelar uma venda devolve a vaga. Use os campos abaixo para acertar o número quando precisar.</p>
+      <div class="row r3"><div><label>Vagas ocupadas agora</label><input id="vgo" type="number" min="0" value="${vagasInfo() ? vagasInfo().oc : 0}"></div>
+      <div><label>Total de vagas</label><input id="vgt" type="number" min="1" value="${vagasInfo() ? vagasInfo().total : 100}"></div>
+      <div style="align-self:end"><button class="btn" id="vgs" type="button">Atualizar vagas</button></div></div>
+      <p class="help" style="margin-top:.5rem">${vagasInfo() ? `No painel agora: <b>${vagasInfo().oc}/${vagasInfo().total}</b> vagas${S.vagas && S.vagas.atualizado_por ? ` · acertado por ${esc(S.vagas.atualizado_por.split(' ')[0])} em ${fmtBR(S.vagas.atualizado_em)}` : ''}.` : 'Ainda sem configuração.'}</p></div>
     <div id="estrelasBox"></div>`;
+  $('#vgs').onclick = async () => {
+    const oc = parseInt($('#vgo').value, 10), tt = parseInt($('#vgt').value, 10);
+    if (!(oc >= 0) || !(tt >= 1)) { toast('Informe as vagas ocupadas e o total.', true); return; }
+    try { await rpc('metas_vagas_set', {p_pin: A.pin, p_ocupadas: oc, p_total: tt}); toast('🎟️ Vagas atualizadas: ' + oc + '/' + tt); await refresh(); } catch (e) { toast(e.message, true); }
+  };
   paneEstrelas(C, $('#estrelasBox'));
   $('#newv').onclick = () => { A.tab = 'equipe'; renderAdm(); window.scrollTo(0, 0); };
   $('#pane').querySelectorAll('.sb').forEach(b => b.onclick = () => { A.sel = b.dataset.v; if (A.tipo && !podeVender(C.byId[A.sel].cargo, A.tipo)) A.tipo = null; renderAdm(); });
