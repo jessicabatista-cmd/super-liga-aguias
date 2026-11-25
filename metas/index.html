@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>
+// /metas (sem a barra final) quebra as imagens, que usam caminhos relativos: manda para /metas/
+if (location.pathname === '/metas' || location.pathname === '/metas/index.html') location.replace('/metas/' + location.search + location.hash);
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Metas Águias</title>
 <link rel="icon" href="assets/favicon.svg">
@@ -247,6 +251,8 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .rw.hit .av{border-color:var(--c)}
 #evt .k{color:var(--evc,var(--bone))}
 #evt .s .lbl{color:var(--evc,var(--yellow))}
+.sq .hd small{white-space:nowrap;font-size:.95rem;letter-spacing:.14em}
+.sq .hd>div:first-child{min-width:0}
 .rw .prod{font-size:1.15rem;letter-spacing:.01em;margin-top:.3rem;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;font-family:var(--head);font-weight:500}
 /* Harpias = squad elite: coluna maior, foto do squad de fundo e destaque dourado */
 .squads{grid-template-columns:repeat(4,1fr)}
@@ -621,7 +627,7 @@ function renderTV(initial) {
         <div class="ct">${ss.sem}<i>/${v.meta}</i>${ss.sem >= v.meta ? ' ✅' : ''}</div></div>`;
     }).join('') || '<div style="opacity:.5;padding:1rem">Ninguém neste squad.</div>';
     return `<article class="sq" id="sq-${k}" style="--c:${sq.cor}">
-      <div class="hd"><div><h2>${sq.nome}${k === 'H' ? ' <span class="elite">★ Elite</span>' : ''}</h2><small>Meta: ${metaSq} venda${metaSq > 1 ? 's' : ''} · ${q.bateram} de ${q.vend.length} bateram</small></div><div class="tot">${q.vendas}<i>/${q.meta}</i></div></div>
+      <div class="hd"><div><h2>${sq.nome}${k === 'H' ? ' <span class="elite">★ Elite</span>' : ''}</h2><small>Meta ${metaSq} · ${q.bateram} de ${q.vend.length} bateram</small></div><div class="tot">${q.vendas}<i>/${q.meta}</i></div></div>
       <div class="sqbar"><i style="width:${pq}%"></i></div><div class="rows">${rows}</div></article>`;
   }).join(''));
 
