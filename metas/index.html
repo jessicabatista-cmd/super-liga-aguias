@@ -315,6 +315,7 @@ input,select,textarea{background:#141414;border:1px solid rgba(255,255,255,.28)}
 .rw .bar{height:.6rem;margin-top:.15rem}
 .rw .prod{display:block;font-size:1.05rem;margin-top:.2rem;line-height:1.2;opacity:.8}
 .rw .prod .pt{opacity:1;display:block;overflow:hidden;text-overflow:ellipsis}
+.rw .prod .pt.sm{font-size:.92rem}
 .rw .stl{margin-top:.15rem;line-height:1;min-height:1.2rem}
 .stz{font-size:1.3rem;margin:0;padding-right:.2rem}
 .stz b{font-size:1.4rem}
@@ -490,9 +491,14 @@ const podeVender = (cargo, tipo) => (TIPOS_SQ[cargo] || ['hub', 'imersao']).incl
 const PLURAL = {hub: ['Hub', 'Hubs'], imersao: ['Imersão', 'Imersões'], performance: ['Performance', 'Performances']};
 const prodTxt = ss => {
   const ts = ['hub', 'imersao', 'performance'].filter(t => ss[t] > 0);
-  const mk = curto => ts.map(t => ss[t] + ' ' + (curto && t === 'performance' ? 'Perf.' : PLURAL[t][ss[t] > 1 ? 1 : 0])).join(' · ');
-  const full = mk(false);
-  return full.length > 26 ? mk(true) : full; // com os três produtos o texto abrevia Performance para caber
+  // soma por produto: "2 Hubs e 1 Performance" (vários itens: "2 Hubs, 1 Imersão e 1 Performance")
+  const ABREV = {performance: 'Perf.', imersao: 'Imers.'};
+  const mk = nivel => {   // nível 0: nomes inteiros; 1: abrevia Performance; 2: abrevia também Imersão
+    const p = ts.map(t => ss[t] + ' ' + ((nivel >= 1 && t === 'performance') || (nivel >= 2 && t === 'imersao') ? ABREV[t] : PLURAL[t][ss[t] > 1 ? 1 : 0]));
+    return p.length > 1 ? p.slice(0, -1).join(', ') + ' e ' + p[p.length - 1] : (p[0] || '');
+  };
+  for (const n of [0, 1]) { const x = mk(n); if (x.length <= 24) return x; }
+  return mk(2);   // se não couber, abrevia
 };
 const META_PADRAO = {L: 6, H: 5, V: 4, SV: 1};
 const POLL_MS = 4000;
@@ -827,7 +833,7 @@ function renderTV(initial) {
       const star = estrelasHtml(tEst);
       const ini = v.nome.split(' ').map(x => x[0]).slice(0, 2).join('');
       return `<div class="rw ${ss.sem >= v.meta ? 'hit' : ''}"><div class="av">${foto ? `<img src="${foto}" alt="">` : `<div>${esc(ini)}</div>`}</div>
-        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod"><span class="pt">${prodTxt(ss) || '—'}</span></div><div class="stl">${star}</div></div>
+        <div class="mid"><div class="nm">${esc(v.nome)}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="prod"><span class="pt${(prodTxt(ss) || '').length > 27 ? ' sm' : ''}">${prodTxt(ss) || '—'}</span></div><div class="stl">${star}</div></div>
         <div class="ct">${ss.sem}<i>/${v.meta}</i>${ss.sem >= v.meta ? ' ✅' : ''}</div></div>`;
     }).join('') || '<div style="opacity:.5;padding:1rem">Ninguém neste squad.</div>';
     return `<article class="sq" id="sq-${k}" style="--c:${sq.cor}">
